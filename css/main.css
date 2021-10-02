@@ -34,7 +34,8 @@ b {
     width: 32px;
     height: 32px;
     position: fixed;
-    background: white;
+    background: url('../img/penguin.png') 0px 0px;
+    image-rendering: pixelated;
 }
 
 .browser {
