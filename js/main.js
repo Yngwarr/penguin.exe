@@ -123,7 +123,7 @@ const PenguinState = {
 
 /**** GLOBALS ****/
 
-const PENGUIN_SPEED = 2;
+const PENGUIN_SPEED = .125;
 const PENGUIN_SIZE = 32;
 const ANIMATION_DURATION = 100;
 
@@ -184,7 +184,8 @@ function step(t) {
 
         if (p.state === PenguinState.RUNNING) {
             const dir = direction(p, p.target);
-            p.move(dir.x * PENGUIN_SPEED, dir.y * PENGUIN_SPEED);
+            const speed = PENGUIN_SPEED * dt;
+            p.move(dir.x * speed, dir.y * speed);
         }
     }
     
