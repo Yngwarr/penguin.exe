@@ -11,6 +11,10 @@ b {
     font-weight: bold;
 }
 
+.title-bar {
+    user-select: none;
+}
+
 #taskbar {
     position: fixed;
     bottom: 0;
@@ -22,4 +26,18 @@ b {
     position: relative;
     top: -4px;
     padding: 4px;
+}
+
+.penguin {
+    width: 32px;
+    height: 32px;
+    position: fixed;
+    background: white;
+}
+
+.browser {
+    position: fixed;
+
+    top: 100px;
+    left: 500px;
 }
