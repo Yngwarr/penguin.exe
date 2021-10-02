@@ -5,14 +5,16 @@
 
 body {
 	background: teal;
+    user-select: none;
 }
 
 b {
     font-weight: bold;
 }
 
-.title-bar {
-    user-select: none;
+#desktop {
+    width: 100vw;
+    height: 100vh;
 }
 
 #taskbar {

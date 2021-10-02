@@ -10,23 +10,25 @@
 		<script src='js/main.js'></script>
 	</head>
 	<body onload='init()'>
-        <div class='browser window'>
-            <div class='title-bar'>
-                <div class='title-bar-text'>Iceseal Browser</div>
-                <div class='title-bar-controls'>
-                    <button aria-label='Close'></button>
+        <div id='desktop'>
+            <div class='browser window'>
+                <div class='title-bar'>
+                    <div class='title-bar-text'>Iceseal Browser</div>
+                    <div class='title-bar-controls'>
+                        <button aria-label='Close'></button>
+                    </div>
+                </div>
+                <div class='window-body'>
+                    <p>There are no browser here.</p>
+                    <button id='no-clickin'>No clickin'</button>
                 </div>
             </div>
-            <div class='window-body'>
-                <p>There are no browser here.</p>
-                <button id='no-clickin'>No clickin'</button>
-            </div>
+            <footer id='taskbar' class='window'>
+                <button id='start'>
+                    <img src='img/win.png'>
+                    <b>Start</b>
+                </button>
+            </footer>
         </div>
-        <footer id='taskbar' class='window'>
-            <button id='start'>
-                <img src='img/win.png'>
-                <b>Start</b>
-            </button>
-        </footer>
 	</body>
 </html>

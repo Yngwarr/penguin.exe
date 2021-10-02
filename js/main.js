@@ -7,6 +7,11 @@ class Penguin {
         this.el = this.initElement(container);
         // point
         this.target = null;
+        this.captured = false;
+
+        const rect = this.el.getBoundingClientRect();
+        this.w = rect.width;
+        this.h = rect.height;
 
         this.updateView();
     }
@@ -14,6 +19,12 @@ class Penguin {
     initElement(container) {
         let el = document.createElement('div');
         el.classList.add('penguin');
+        el.addEventListener('mousedown', () => {
+            this.captured = true;
+        });
+        el.addEventListener('mouseup', () => {
+            this.captured = false;
+        });
         container.appendChild(el);
         return el;
     }
@@ -36,10 +47,13 @@ class Penguin {
     }
 }
 
-/**** GLOBAL STATE ****/
+/**** GLOBALS ****/
+
+const PENGUIN_SPEED = 2;
 
 const state = {
     prevFrame: null,
+    mousePos: { x: 0, y: 0 },
 
     penguins: []
 };
@@ -75,13 +89,21 @@ function step(t) {
 
     for (let p of state.penguins) {
         if (p.target === null) continue;
-        const dir = direction(p, p.target);
-        p.move(dir.x, dir.y);
+        if (p.captured) {
+            p.setPos(state.mousePos.x - p.w / 2, state.mousePos.y - p.h / 2);
+        } else {
+            const dir = direction(p, p.target);
+            p.move(dir.x * PENGUIN_SPEED, dir.y * PENGUIN_SPEED);
+        }
     }
 }
 
 function init() {
     const body = document.querySelector('body');
+    body.addEventListener('mousemove', e => {
+        state.mousePos.x = e.clientX;
+        state.mousePos.y = e.clientY;
+    });
 
     state.penguins = [new Penguin(10, 10, body)];
     state.penguins[0].target = getCenter(document.querySelector('#no-clickin'));
