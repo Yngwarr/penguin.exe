@@ -74,6 +74,10 @@ function direction(from, to) {
     return { x: (to.x - from.x) / dist, y: (to.y - from.y) / dist };
 }
 
+function near(a, b) {
+    return distance(a, b) < 5;
+}
+
 /**** GAMEPLAY ****/
 
 function step(t) {
@@ -89,12 +93,16 @@ function step(t) {
 
     for (let p of state.penguins) {
         if (p.target === null) continue;
+
         if (p.captured) {
             p.setPos(state.mousePos.x - p.w / 2, state.mousePos.y - p.h / 2);
-        } else {
-            const dir = direction(p, p.target);
-            p.move(dir.x * PENGUIN_SPEED, dir.y * PENGUIN_SPEED);
+            continue;
         }
+
+        if (near(p, p.target)) continue;
+
+        const dir = direction(p, p.target);
+        p.move(dir.x * PENGUIN_SPEED, dir.y * PENGUIN_SPEED);
     }
 }
 
