@@ -113,6 +113,26 @@ class Penguin {
         this.el.style.left = `${this.x}px`;
         this.el.style.top = `${this.y}px`;
     }
+
+    tick(dt) {
+        if (this.target === null) return;
+
+        if (this.captured) {
+            this.setPos(game.mousePos.x - this.w / 2, game.mousePos.y - this.h / 2);
+            return;
+        }
+
+        if (this.state === PenguinState.RUNNING && near(this, this.target)) {
+            this.setState(PenguinState.PRESSING);
+            return;
+        }
+
+        if (this.state === PenguinState.RUNNING) {
+            const dir = direction(this, this.target);
+            const speed = PENGUIN_SPEED * dt;
+            this.move(dir.x * speed, dir.y * speed);
+        }
+    }
 }
 
 const PenguinState = {
@@ -170,23 +190,7 @@ function step(t) {
     if (dt > 1e3) return;
 
     for (let p of game.penguins) {
-        if (p.target === null) continue;
-
-        if (p.captured) {
-            p.setPos(game.mousePos.x - p.w / 2, game.mousePos.y - p.h / 2);
-            continue;
-        }
-
-        if (p.state === PenguinState.RUNNING && near(p, p.target)) {
-            p.setState(PenguinState.PRESSING);
-            continue;
-        }
-
-        if (p.state === PenguinState.RUNNING) {
-            const dir = direction(p, p.target);
-            const speed = PENGUIN_SPEED * dt;
-            p.move(dir.x * speed, dir.y * speed);
-        }
+        p.tick(dt);
     }
     
     for (let a of game.animations) {
@@ -239,4 +243,8 @@ function init() {
     }
 
     requestAnimationFrame(step);
+}
+
+function closeSeal() {
+    document.querySelector('.browser').style.display = 'none';
 }
