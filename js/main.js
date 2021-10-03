@@ -25,6 +25,14 @@ let fileNames = [
     "hl3.rar"
 ];
 
+const EXTENSIONS = [
+    'txt', 'cpp',
+    'jpg', 'png',
+    'wav', 'mp3',
+    'zip', 'rar',
+    'exe'
+];
+
 /**** CLASSES ****/
 
 class Animation {
@@ -172,7 +180,7 @@ class Folder {
         this.el = this.initElement(container);
         this.el.addEventListener('click', e => {
             e.stopPropagation();
-            this.select();
+            select(this.el);
         });
 
         this.updateView();
@@ -192,11 +200,6 @@ class Folder {
         return el;
     }
 
-    select() {
-        unselect();
-        this.el.classList.add('selected');
-    }
-
     setOpen(value) {
         this.open = value;
         if (value) {
@@ -210,6 +213,50 @@ class Folder {
         this.x = x;
         this.y = y;
         this.updateView();
+    }
+
+    updateView() {
+        this.el.style.left = `${this.x}px`;
+        this.el.style.top = `${this.y}px`;
+    }
+}
+
+class File {
+    constructor(x, y, name, container) {
+        this.x = x;
+        this.y = y;
+        this.name = name;
+        this.el = this.initElement(container);
+        this.el.addEventListener('click', e => {
+            e.stopPropagation();
+            select(this.el);
+        });
+
+        this.updateView();
+    }
+
+    initElement(container) {
+        const el = document.createElement('div');
+        el.classList.add('file');
+        const ext = this.extentionClass();
+        if (ext !== null) {
+            el.classList.add(ext);
+        }
+
+        const icon = document.createElement('div');
+        icon.classList.add('icon');
+        const span = document.createElement('span');
+        span.innerText = this.name;
+        el.appendChild(icon)
+        el.appendChild(span);
+        container.appendChild(el);
+
+        return el;
+    }
+
+    extentionClass() {
+        const ext = this.name.substr(this.name.indexOf('.') + 1);
+        return EXTENSIONS.includes(ext) ? ext : null;
     }
 
     updateView() {
@@ -311,6 +358,8 @@ const game = {
     penguins: [],
     animations: [],
     folders: [],
+    files: [],
+
     target: null
 };
 
@@ -343,6 +392,11 @@ function popName(arr, defaultValue) {
 }
 
 /**** GAMEPLAY ****/
+
+function select(el) {
+    unselect();
+    el.classList.add('selected');
+}
 
 function unselect() {
     document.querySelectorAll('.file.selected').forEach(el => el.classList.remove('selected'));
@@ -377,7 +431,7 @@ function init() {
         game.mousePos.y = e.clientY;
     });
 
-    desktop.addEventListener('click', e => { console.log('hey'); unselect() });
+    desktop.addEventListener('click', e => unselect());
 
     game.grid = new Grid(desktop, TILE_SIZE, TILE_OFFSET);
 
@@ -423,6 +477,12 @@ function init() {
         const p = game.grid.addRandom();
         const f = new Folder(p.x, p.y, popName(folderNames, 'Folder'), desktop);
         game.folders.push(f);
+    }
+
+    for (let i = 0; i < 3; ++i) {
+        const p = game.grid.addRandom();
+        const f = new File(p.x, p.y, popName(fileNames, 'File'), desktop);
+        game.files.push(f);
     }
 
     requestAnimationFrame(step);

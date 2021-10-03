@@ -55,6 +55,10 @@ b {
     left: 20px;
 }
 
+.file.selected {
+    z-index: 2;
+}
+
 .icon {
     margin: 0 auto;
     image-rendering: pixelated;
@@ -63,6 +67,7 @@ b {
 .file > .icon {
     width: 48px;
     height: 48px;
+    background: url('../img/file.png') 0 0;
 }
 
 .file > span {
@@ -72,6 +77,10 @@ b {
     /*width: 72px;*/
     text-align: center;
     margin: 0 auto;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .file.selected > span {
@@ -81,6 +90,8 @@ b {
     outline-style: dotted;
     outline-width: 1px;
     outline-offset: -1px;
+
+    overflow: visible;
 }
 
 .file.selected > .icon {
