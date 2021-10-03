@@ -1,3 +1,30 @@
+/**** CONSTS ****/
+
+const SIN_1 = Math.sin(Math.PI/8);
+const SIN_3 = Math.sin(3 * Math.PI/8);
+const SIN_5 = Math.sin(5 * Math.PI/8);
+const SIN_7 = Math.sin(7 * Math.PI/8);
+const SIN_9 = Math.sin(9 * Math.PI/8);
+const SIN_11 = Math.sin(11 * Math.PI/8);
+const SIN_13 = Math.sin(13 * Math.PI/8);
+const SIN_15 = Math.sin(15 * Math.PI/8);
+const COS_1 = Math.cos(Math.PI/8);
+const COS_3 = Math.cos(3 * Math.PI/8);
+const COS_5 = Math.cos(5 * Math.PI/8);
+const COS_7 = Math.cos(7 * Math.PI/8);
+const COS_9 = Math.cos(9 * Math.PI/8);
+const COS_11 = Math.cos(11 * Math.PI/8);
+const COS_13 = Math.cos(13 * Math.PI/8);
+const COS_15 = Math.cos(15 * Math.PI/8);
+
+const PENGUIN_SPEED = .125;
+const PENGUIN_SIZE = 64;
+const ANIMATION_DURATION = 100;
+const TILE_SIZE = 72;
+const TILE_OFFSET = 10;
+const START_FOLDERS = 6;
+const START_PENGUINS = 3;
+
 /**** STRINGS ****/
 
 let folderNames = [
@@ -130,6 +157,28 @@ class Penguin {
         this.el.style.top = `${this.y}px`;
     }
 
+    runningAnim(x, y) {
+        if (between(x, COS_1, COS_3) && between(y, SIN_1, SIN_3))
+            return 'right_down';
+        if (between(x, COS_5, COS_7) && between(y, SIN_5, SIN_7))
+            return 'left_down';
+        if (between(x, COS_9, COS_11) && between(y, SIN_9, SIN_11))
+            return 'left_up';
+        if (between(x, COS_13, COS_15) && between(y, SIN_13, SIN_15))
+            return 'right_up';
+
+        if (x > y && x >= -y)
+            return 'right';
+        if (x > y && x <= -y)
+            return 'up';
+        if (x < y && x >= -y)
+            return 'down';
+        if (x < y && x <= -y)
+            return 'left';
+
+        return 'llamapalooza'
+    }
+
     setState(state) {
         switch (state) {
             case PenguinState.IDLE:
@@ -137,7 +186,8 @@ class Penguin {
             break;
             case PenguinState.RUNNING:
                 // TODO set an actual direction
-                game.animations[this.animId].setAnim('right');
+                const dir = direction(this, this.target);
+                game.animations[this.animId].setAnim(this.runningAnim(dir.x, dir.y));
             break;
             case PenguinState.PRESSING:
                 game.animations[this.animId].setAnim('press', a => {
@@ -354,14 +404,6 @@ const PenguinState = {
 
 /**** GLOBALS ****/
 
-const PENGUIN_SPEED = .125;
-const PENGUIN_SIZE = 64;
-const ANIMATION_DURATION = 100;
-const TILE_SIZE = 72;
-const TILE_OFFSET = 10;
-const START_FOLDERS = 6;
-const START_PENGUINS = 3;
-
 const game = {
     grid: null,
     prevFrame: null,
@@ -393,6 +435,10 @@ function direction(from, to) {
 
 function near(a, b) {
     return distance(a, b) < 5;
+}
+
+function between(x, a, b) {
+    return x > Math.min(a, b) && x < Math.max(a, b);
 }
 
 function shuffle(arr) {
@@ -457,12 +503,12 @@ function init() {
         down: [[1,0], [2,0],[1,0],[3,0]],
 
         left: [[5,4], [6,4],[7,4],[5,4],[0,5]],
-        up_left: [[5,5], [6,5],[7,5],[6,5],[0,6]],
-        down_left: [[3,1], [4,1],[5,1],[4,1],[6,1]],
+        left_up: [[5,5], [6,5],[7,5],[6,5],[0,6]],
+        left_down: [[3,1], [4,1],[5,1],[4,1],[6,1]],
 
         right: [[4,0], [5,0],[6,0],[4,0],[7,0]],
-        up_right: [[7,1], [0,2],[1,2],[0,2],[2,2]],
-        down_right: [[1,5], [2,5],[3,5],[2,5],[4,5]],
+        right_up: [[7,1], [0,2],[1,2],[0,2],[2,2]],
+        right_down: [[1,5], [2,5],[3,5],[2,5],[4,5]],
 
         hanging: [[3,2], [4,2]],
         getting_up: [[5,2], [6,2], [7,2], [0,3], [1,3], [0,0],[1,0]],
