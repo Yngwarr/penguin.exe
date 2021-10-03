@@ -36,8 +36,8 @@ b {
 
 .penguin {
     z-index: 10;
-    width: 32px;
-    height: 32px;
+    width: 64px;
+    height: 64px;
     position: fixed;
     background: url('../img/penguin.png') 0px 0px;
     image-rendering: pixelated;
