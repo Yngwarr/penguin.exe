@@ -25,6 +25,24 @@ const TILE_OFFSET = 10;
 const START_FOLDERS = 6;
 const START_PENGUINS = 3;
 
+const PenguinState = {
+    IDLE: 0,
+    RUNNING: 1,
+    PRESSING: 2,
+    HANGING: 3,
+    GETTING_UP: 4,
+    SEARCHING: 5,
+    TOSSING: 6,
+    PRESSING: 7
+};
+
+const TossStage = {
+    SETUP: 0,
+    RUNNING: 1,
+    SEARCHING: 2,
+    TOSSING: 3
+};
+
 /**** STRINGS ****/
 
 let folderNames = [
@@ -106,6 +124,45 @@ class Animation {
     }
 }
 
+function updateBehaviour(penguin) {
+    // TODO recycle previous behaviour
+    return new TossBehaviour(sample(game.folders).el);
+}
+
+class TossBehaviour {
+    constructor(targetElement) {
+        this.targetElement = targetElement;
+        this.stage = TossStage.SETUP;
+    }
+
+    next(penguin) {
+        switch (this.stage) {
+            case TossStage.SETUP:
+                penguin.target = this.findTarget();
+                penguin.setState(PenguinState.RUNNING);
+                this.stage = TossStage.RUNNING;
+            break;
+            case TossStage.RUNNING:
+                penguin.setState(PenguinState.SEARCHING);
+                this.stage = TossStage.SEARCHING;
+            break;
+            case TossStage.SEARCHING:
+                penguin.setState(PenguinState.TOSSING);
+                this.stage = TossStage.TOSSING;
+            break;
+            case TossStage.TOSSING:
+                spawnRandomFile();
+                penguin.setState(PenguinState.SEARCHING);
+                this.stage = TossStage.SEARCHING;
+            break;
+        }
+    }
+
+    findTarget() {
+        return getCenter(this.targetElement);
+    }
+}
+
 class Penguin {
     constructor(x, y, container, animId) {
         this.x = x;
@@ -115,7 +172,8 @@ class Penguin {
         // point
         this.target = null;
         this.captured = false;
-        this.state = PenguinState.RUNNING;
+        this.state = PenguinState.IDLE;
+        this.behaviour = updateBehaviour(this);
 
         const rect = this.el.getBoundingClientRect();
         this.w = rect.width;
@@ -185,25 +243,31 @@ class Penguin {
                 game.animations[this.animId].setAnim('idle');
             break;
             case PenguinState.RUNNING:
-                // TODO set an actual direction
                 const dir = direction(this, this.target);
                 game.animations[this.animId].setAnim(this.runningAnim(dir.x, dir.y));
-            break;
-            case PenguinState.PRESSING:
-                game.animations[this.animId].setAnim('press', a => {
-                    if (game.target !== null) {
-                        game.target.click();
-                        game.target = null;
-                    }
-                    this.setState(PenguinState.IDLE);
-                });
             break;
             case PenguinState.HANGING:
                 game.animations[this.animId].setAnim('hanging');
             break;
             case PenguinState.GETTING_UP:
                 game.animations[this.animId].setAnim('getting_up', a => {
-                    this.setState(this.target === null ? PenguinState.IDLE : PenguinState.RUNNING);
+                    this.setState(PenguinState.IDLE);
+                    this.behaviour = updateBehaviour(this);
+                });
+            break;
+            case PenguinState.SEARCHING:
+                game.animations[this.animId].setAnim('search', a => {
+                    this.behaviour.next(this);
+                });
+            break;
+            case PenguinState.TOSSING:
+                game.animations[this.animId].setAnim('toss', a => {
+                    this.behaviour.next(this);
+                });
+            break;
+            case PenguinState.PRESSING:
+                game.animations[this.animId].setAnim('press', a => {
+                    this.behaviour.next(this);
                 });
             break;
         }
@@ -211,6 +275,10 @@ class Penguin {
     }
 
     tick(dt) {
+        if (this.state === PenguinState.IDLE) {
+            this.behaviour.next(this);
+        }
+
         if (this.target === null) return;
 
         if (this.captured) {
@@ -219,7 +287,7 @@ class Penguin {
         }
 
         if (this.state === PenguinState.RUNNING && near(this, this.target)) {
-            this.setState(PenguinState.PRESSING);
+            this.behaviour.next(this);
             return;
         }
 
@@ -394,14 +462,6 @@ class Grid {
     }
 }
 
-const PenguinState = {
-    IDLE: 0,
-    RUNNING: 1,
-    PRESSING: 2,
-    HANGING: 3,
-    GETTING_UP: 4
-};
-
 /**** GLOBALS ****/
 
 const game = {
@@ -412,9 +472,7 @@ const game = {
     penguins: [],
     animations: [],
     folders: [],
-    files: [],
-
-    target: null
+    files: []
 };
 
 /**** HELPERS ****/
@@ -445,6 +503,10 @@ function shuffle(arr) {
     arr.sort(() => Math.random() - .5);
 }
 
+function sample(arr) {
+    return arr[(Math.random() * arr.length)|0]
+}
+
 function popName(arr, defaultValue) {
     return arr.pop() ?? `${defaultValue} (${(Math.random() * 1000 + 1)|0})`;
 }
@@ -458,6 +520,12 @@ function select(el) {
 
 function unselect() {
     document.querySelectorAll('.file.selected').forEach(el => el.classList.remove('selected'));
+}
+
+function spawnRandomFile() {
+    const p = game.grid.addRandom();
+    const f = new File(p.x, p.y, popName(fileNames, 'File'), desktop);
+    game.files.push(f);
 }
 
 function step(t) {
@@ -493,9 +561,6 @@ function init() {
 
     game.grid = new Grid(desktop, TILE_SIZE, TILE_OFFSET);
 
-    game.target = document.querySelector('#no-clickin');
-    const t = getCenter(game.target);
-
     const frames = {
         idle: [[0,0], [1,0]],
 
@@ -513,7 +578,7 @@ function init() {
         hanging: [[3,2], [4,2]],
         getting_up: [[5,2], [6,2], [7,2], [0,3], [1,3], [0,0],[1,0]],
 
-        check_folder: [[3,3], [4,3]],
+        search: [[3,3], [4,3]],
         toss: [[5,3], [6,3], [7,3], [0,4], [4,3], [3,3], [1,4], [2,4], [3,4],[4,4]],
         press: [[6,5], [1,6], [2,6], [3,6], [4,6],[5,6],[5,5]]
     };
@@ -521,26 +586,18 @@ function init() {
     shuffle(folderNames);
     shuffle(fileNames);
 
-    for (let i = 0; i < START_PENGUINS; ++i) {
-        const p = new Penguin(10, 40 * i, body, i);
-        const a = new Animation(p.el, frames, 'right', PENGUIN_SIZE);
-
-        p.target = t;
-
-        game.penguins.push(p);
-        game.animations.push(a);
-    }
-
     for (let i = 0; i < START_FOLDERS; ++i) {
         const p = game.grid.addRandom();
         const f = new Folder(p.x, p.y, popName(folderNames, 'Folder'), desktop);
         game.folders.push(f);
     }
 
-    for (let i = 0; i < 3; ++i) {
-        const p = game.grid.addRandom();
-        const f = new File(p.x, p.y, popName(fileNames, 'File'), desktop);
-        game.files.push(f);
+    for (let i = 0; i < START_PENGUINS; ++i) {
+        const p = new Penguin(10, 40 * i, body, i);
+        const a = new Animation(p.el, frames, 'right', PENGUIN_SIZE);
+
+        game.penguins.push(p);
+        game.animations.push(a);
     }
 
     requestAnimationFrame(step);
