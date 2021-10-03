@@ -12,6 +12,10 @@ b {
     font-weight: bold;
 }
 
+.hidden {
+    display: none;
+}
+
 #desktop {
     width: 100vw;
     height: 100vh;
@@ -109,6 +113,8 @@ b {
 .folder > .icon { background: url('../img/icons.png') -48px 0px; }
 .folder.open > .icon { background-position: -48px -48px; }
 .folder.empty > .icon { background-position: -96px 0px; }
+
+.bin > .icon { background-position: -96px -48px; }
 
 .browser {
     position: fixed;

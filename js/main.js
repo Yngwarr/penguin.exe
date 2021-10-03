@@ -23,7 +23,7 @@ const ANIMATION_DURATION = 100;
 const TILE_SIZE = 72;
 const TILE_OFFSET = 10;
 const START_FOLDERS = 6;
-const START_PENGUINS = 3;
+const START_PENGUINS = 1;
 
 const PenguinState = {
     IDLE: 0,
@@ -33,7 +33,8 @@ const PenguinState = {
     GETTING_UP: 4,
     SEARCHING: 5,
     TOSSING: 6,
-    PRESSING: 7
+    PRESSING: 7,
+    DEAD: 8
 };
 
 const FolderState = {
@@ -94,9 +95,18 @@ class Animation {
         this.currentFrame = 0;
         this.el = el;
         this.size = size;
+        this.stopped = false;
 
         this.countdown = 0;
         this.onEnd = null;
+    }
+
+    stop() {
+        this.stopped = true;
+    }
+
+    play() {
+        this.stopped = false;
     }
 
     setAnim(name, onEnd = null) {
@@ -110,6 +120,8 @@ class Animation {
     }
 
     tick(dt) {
+        if (this.stopped) return;
+
         this.countdown -= dt;
         if (this.countdown > 0) return;
 
@@ -180,16 +192,21 @@ class TossBehaviour {
     }
 
     findTargetPoint() {
-        return getCenter(this.target.el);
+        const c = getCenter(this.target.el);
+        return { x: c.x + 16, y: c.y };
     }
 }
 
 class Penguin {
     constructor(x, y, container, animId) {
-        this.x = x;
-        this.y = y;
         this.animId = animId;
         this.el = this.initElement(container);
+        this.init(x, y);
+    }
+
+    init(x, y) {
+        this.x = x;
+        this.y = y;
         // point
         this.target = null;
         this.captured = false;
@@ -232,8 +249,8 @@ class Penguin {
     }
 
     updateView() {
-        this.el.style.left = `${this.x}px`;
-        this.el.style.top = `${this.y}px`;
+        this.el.style.left = `${this.x - this.w / 2}px`;
+        this.el.style.top = `${this.y - this.h / 2}px`;
     }
 
     runningAnim(x, y) {
@@ -291,11 +308,17 @@ class Penguin {
                     this.behaviour.next(this);
                 });
             break;
+            case PenguinState.DEAD:
+                this.el.classList.add('hidden');
+                game.animations[this.animId].stop();
+            break;
         }
         this.state = state;
     }
 
     tick(dt) {
+        if (this.state === PenguinState.DEAD) return;
+
         if (this.state === PenguinState.IDLE) {
             this.behaviour.next(this);
         }
@@ -303,13 +326,17 @@ class Penguin {
         if (this.target === null) return;
 
         if (this.captured) {
-            this.setPos(game.mousePos.x - this.w / 2, game.mousePos.y - this.h / 2);
+            this.setPos(game.mousePos.x, game.mousePos.y);
             return;
         }
 
         if (this.state === PenguinState.RUNNING && near(this, this.target)) {
             this.behaviour.next(this);
             return;
+        }
+
+        if (this.state === PenguinState.GETTING_UP && game.bin.isOver(this.x, this.y)) {
+            this.setState(PenguinState.DEAD);
         }
 
         if (this.state === PenguinState.RUNNING) {
@@ -423,6 +450,46 @@ class File {
     }
 }
 
+class Bin {
+    constructor(x, y, container) {
+        this.x = x;
+        this.y = y;
+
+        this.el = this.initElement(container);
+        this.el.addEventListener('click', e => {
+            e.stopPropagation();
+            select(this.el);
+        });
+
+        this.updateView();
+    }
+
+    initElement(container) {
+        const el = document.createElement('div');
+        el.classList.add('file', 'bin');
+        const icon = document.createElement('div');
+        icon.classList.add('icon');
+        const span = document.createElement('span');
+        span.innerText = 'Recycle Bin';
+        el.appendChild(icon)
+        el.appendChild(span);
+        container.appendChild(el);
+
+        return el;
+    }
+
+    updateView() {
+        this.el.style.left = `${this.x}px`;
+        this.el.style.top = `${this.y}px`;
+    }
+
+    isOver(x, y) {
+        const rect = this.el.getBoundingClientRect();
+        return x > rect.left && x < rect.right
+            && y > rect.top && y < rect.bottom;
+    }
+}
+
 class Grid {
     constructor(container, tile, offset) {
         const rect = container.getBoundingClientRect();
@@ -502,7 +569,8 @@ const game = {
     penguins: [],
     animations: [],
     folders: [],
-    files: []
+    files: [],
+    bin: null
 };
 
 /**** HELPERS ****/
@@ -578,6 +646,12 @@ function step(t) {
     }
 }
 
+function spawnBin(container) {
+    const p = game.grid.addRandom();
+    const bin = new Bin(p.x, p.y, container);
+    return bin;
+}
+
 function init() {
     const body = document.querySelector('body');
     const desktop = document.getElementById('desktop');
@@ -615,6 +689,8 @@ function init() {
 
     shuffle(folderNames);
     shuffle(fileNames);
+
+    game.bin = spawnBin(desktop);
 
     for (let i = 0; i < START_FOLDERS; ++i) {
         const p = game.grid.addRandom();
