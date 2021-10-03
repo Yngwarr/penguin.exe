@@ -22,8 +22,32 @@ const PENGUIN_SIZE = 64;
 const ANIMATION_DURATION = 100;
 const TILE_SIZE = 72;
 const TILE_OFFSET = 10;
-const START_FOLDERS = 6;
-const START_PENGUINS = 1;
+const START_FOLDERS = 10;
+const START_PENGUINS = 3;
+const MAX_PENGUINS = 5;
+const SPAWN_RATE = 1000; //ms
+
+const ANIMATION_FRAMES = {
+    idle: [[0,0], [1,0]],
+
+    up: [[0,1], [1,1],[0,1],[2,1]],
+    down: [[1,0], [2,0],[1,0],[3,0]],
+
+    left: [[5,4], [6,4],[7,4],[5,4],[0,5]],
+    left_up: [[5,5], [6,5],[7,5],[6,5],[0,6]],
+    left_down: [[3,1], [4,1],[5,1],[4,1],[6,1]],
+
+    right: [[4,0], [5,0],[6,0],[4,0],[7,0]],
+    right_up: [[7,1], [0,2],[1,2],[0,2],[2,2]],
+    right_down: [[1,5], [2,5],[3,5],[2,5],[4,5]],
+
+    hanging: [[3,2], [4,2]],
+    getting_up: [[5,2], [6,2], [7,2], [0,3], [1,3], [0,0],[1,0]],
+
+    search: [[3,3], [4,3]],
+    toss: [[5,3], [6,3], [7,3], [0,4], [4,3], [3,3], [1,4], [2,4], [3,4],[4,4]],
+    press: [[6,5], [1,6], [2,6], [3,6], [4,6],[5,6],[5,5]]
+};
 
 const PenguinState = {
     IDLE: 0,
@@ -105,7 +129,7 @@ class Animation {
         this.stopped = true;
     }
 
-    play() {
+    start() {
         this.stopped = false;
     }
 
@@ -201,6 +225,11 @@ class Penguin {
     constructor(x, y, container, animId) {
         this.animId = animId;
         this.el = this.initElement(container);
+
+        const rect = this.el.getBoundingClientRect();
+        this.w = rect.width;
+        this.h = rect.height;
+
         this.init(x, y);
     }
 
@@ -213,10 +242,7 @@ class Penguin {
         this.state = PenguinState.IDLE;
         this.behaviour = updateBehaviour(this);
 
-        const rect = this.el.getBoundingClientRect();
-        this.w = rect.width;
-        this.h = rect.height;
-
+        this.el.classList.remove('hidden');
         this.updateView();
     }
 
@@ -311,6 +337,7 @@ class Penguin {
             case PenguinState.DEAD:
                 this.el.classList.add('hidden');
                 game.animations[this.animId].stop();
+                --game.penguinsAlive;
             break;
         }
         this.state = state;
@@ -562,15 +589,19 @@ class Grid {
 /**** GLOBALS ****/
 
 const game = {
-    grid: null,
     prevFrame: null,
-    mousePos: { x: 0, y: 0 },
+    toNextSpawn: SPAWN_RATE, 
 
     penguins: [],
+    penguinsAlive: 0,
     animations: [],
     folders: [],
     files: [],
-    bin: null
+
+    mousePos: { x: 0, y: 0 },
+    grid: null,
+    bin: null,
+    body: null
 };
 
 /**** HELPERS ****/
@@ -626,8 +657,8 @@ function spawnRandomFile() {
     game.files.push(f);
 }
 
-function step(t) {
-    requestAnimationFrame(step);
+function tick(t) {
+    requestAnimationFrame(tick);
 
     if (game.prevFrame === null) {
         game.prevFrame = t;
@@ -636,6 +667,12 @@ function step(t) {
     game.prevFrame = t;
 
     if (dt > 1e3) return;
+
+    game.toNextSpawn -= dt;
+    if (game.toNextSpawn <= 0 && game.penguinsAlive < MAX_PENGUINS) {
+        spawnPenguin(game.body);
+        game.toNextSpawn = SPAWN_RATE;
+    }
 
     for (let p of game.penguins) {
         p.tick(dt);
@@ -652,9 +689,31 @@ function spawnBin(container) {
     return bin;
 }
 
+function spawnPenguin(container) {
+    const rect = container.getBoundingClientRect();
+    const x = 10 + Math.random() * (rect.width - 20);
+    const y = 10 + Math.random() * (rect.height - 20);
+
+    for (const p of game.penguins) {
+        if (p.state !== PenguinState.DEAD) continue;
+        p.init(x, y);
+        game.animations[p.animId].start();
+        ++game.penguinsAlive;
+        return;
+    }
+
+    const index = game.penguins.length;
+    const p = new Penguin(x, y, container, index);
+    const a = new Animation(p.el, ANIMATION_FRAMES, 'right', PENGUIN_SIZE);
+    game.penguins.push(p);
+    game.animations.push(a);
+    ++game.penguinsAlive;
+}
+
 function init() {
     const body = document.querySelector('body');
     const desktop = document.getElementById('desktop');
+    game.body = body;
 
     body.addEventListener('mousemove', e => {
         game.mousePos.x = e.clientX;
@@ -664,28 +723,6 @@ function init() {
     desktop.addEventListener('click', e => unselect());
 
     game.grid = new Grid(desktop, TILE_SIZE, TILE_OFFSET);
-
-    const frames = {
-        idle: [[0,0], [1,0]],
-
-        up: [[0,1], [1,1],[0,1],[2,1]],
-        down: [[1,0], [2,0],[1,0],[3,0]],
-
-        left: [[5,4], [6,4],[7,4],[5,4],[0,5]],
-        left_up: [[5,5], [6,5],[7,5],[6,5],[0,6]],
-        left_down: [[3,1], [4,1],[5,1],[4,1],[6,1]],
-
-        right: [[4,0], [5,0],[6,0],[4,0],[7,0]],
-        right_up: [[7,1], [0,2],[1,2],[0,2],[2,2]],
-        right_down: [[1,5], [2,5],[3,5],[2,5],[4,5]],
-
-        hanging: [[3,2], [4,2]],
-        getting_up: [[5,2], [6,2], [7,2], [0,3], [1,3], [0,0],[1,0]],
-
-        search: [[3,3], [4,3]],
-        toss: [[5,3], [6,3], [7,3], [0,4], [4,3], [3,3], [1,4], [2,4], [3,4],[4,4]],
-        press: [[6,5], [1,6], [2,6], [3,6], [4,6],[5,6],[5,5]]
-    };
 
     shuffle(folderNames);
     shuffle(fileNames);
@@ -699,14 +736,10 @@ function init() {
     }
 
     for (let i = 0; i < START_PENGUINS; ++i) {
-        const p = new Penguin(10, 40 * i, body, i);
-        const a = new Animation(p.el, frames, 'right', PENGUIN_SIZE);
-
-        game.penguins.push(p);
-        game.animations.push(a);
+        spawnPenguin(body);
     }
 
-    requestAnimationFrame(step);
+    requestAnimationFrame(tick);
 }
 
 function closeSeal() {
