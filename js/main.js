@@ -103,9 +103,11 @@ class Penguin {
         el.addEventListener('mousedown', () => {
             unselect();
             this.captured = true;
+            this.setState(PenguinState.HANGING);
         });
         el.addEventListener('mouseup', () => {
             this.captured = false;
+            this.setState(PenguinState.GETTING_UP);
         });
         container.appendChild(el);
         return el;
@@ -115,6 +117,17 @@ class Penguin {
         this.x = x;
         this.y = y;
         this.updateView();
+    }
+
+    move(x, y) {
+        this.x += x;
+        this.y += y;
+        this.updateView();
+    }
+
+    updateView() {
+        this.el.style.left = `${this.x}px`;
+        this.el.style.top = `${this.y}px`;
     }
 
     setState(state) {
@@ -135,19 +148,16 @@ class Penguin {
                     this.setState(PenguinState.IDLE);
                 });
             break;
+            case PenguinState.HANGING:
+                game.animations[this.animId].setAnim('hanging');
+            break;
+            case PenguinState.GETTING_UP:
+                game.animations[this.animId].setAnim('getting_up', a => {
+                    this.setState(this.target === null ? PenguinState.IDLE : PenguinState.RUNNING);
+                });
+            break;
         }
         this.state = state;
-    }
-
-    move(x, y) {
-        this.x += x;
-        this.y += y;
-        this.updateView();
-    }
-
-    updateView() {
-        this.el.style.left = `${this.x}px`;
-        this.el.style.top = `${this.y}px`;
     }
 
     tick(dt) {
@@ -337,7 +347,9 @@ class Grid {
 const PenguinState = {
     IDLE: 0,
     RUNNING: 1,
-    PRESSING: 2
+    PRESSING: 2,
+    HANGING: 3,
+    GETTING_UP: 4
 };
 
 /**** GLOBALS ****/
@@ -452,8 +464,8 @@ function init() {
         up_right: [[7,1], [0,2],[1,2],[0,2],[2,2]],
         down_right: [[1,5], [2,5],[3,5],[2,5],[4,5]],
 
-        dragged: [[3,2], [4,2]],
-        dropped: [[5,2], [6,2], [7,2], [0,3], [1,3], [0,0],[1,0]],
+        hanging: [[3,2], [4,2]],
+        getting_up: [[5,2], [6,2], [7,2], [0,3], [1,3], [0,0],[1,0]],
 
         check_folder: [[3,3], [4,3]],
         toss: [[5,3], [6,3], [7,3], [0,4], [4,3], [3,3], [1,4], [2,4], [3,4],[4,4]],
