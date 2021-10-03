@@ -133,6 +133,8 @@ class TossBehaviour {
     constructor(targetElement) {
         this.targetElement = targetElement;
         this.stage = TossStage.SETUP;
+
+        this.searchDuration = 1;
     }
 
     next(penguin) {
@@ -143,19 +145,26 @@ class TossBehaviour {
                 this.stage = TossStage.RUNNING;
             break;
             case TossStage.RUNNING:
+                this.setSearchDuration();
                 penguin.setState(PenguinState.SEARCHING);
                 this.stage = TossStage.SEARCHING;
             break;
             case TossStage.SEARCHING:
+                if (--this.searchDuration > 0) break;
                 penguin.setState(PenguinState.TOSSING);
                 this.stage = TossStage.TOSSING;
             break;
             case TossStage.TOSSING:
                 spawnRandomFile();
+                this.setSearchDuration();
                 penguin.setState(PenguinState.SEARCHING);
                 this.stage = TossStage.SEARCHING;
             break;
         }
+    }
+
+    setSearchDuration() {
+        this.searchDuration = 1 + ((Math.random() * 10)|0);
     }
 
     findTarget() {
