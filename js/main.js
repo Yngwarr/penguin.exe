@@ -36,6 +36,12 @@ const PenguinState = {
     PRESSING: 7
 };
 
+const FolderState = {
+    CLOSED: 0,
+    OPEN: 1,
+    EMPTY: 2
+};
+
 const TossStage = {
     SETUP: 0,
     RUNNING: 1,
@@ -75,6 +81,7 @@ const EXTENSIONS = [
     'jpg', 'png',
     'wav', 'mp3',
     'zip', 'rar',
+    'mkv', 'mpg',
     'exe'
 ];
 
@@ -126,37 +133,42 @@ class Animation {
 
 function updateBehaviour(penguin) {
     // TODO recycle previous behaviour
-    return new TossBehaviour(sample(game.folders).el);
+    return new TossBehaviour(sample(game.folders));
 }
 
 class TossBehaviour {
-    constructor(targetElement) {
-        this.targetElement = targetElement;
+    constructor(target) {
+        this.target = target;
         this.stage = TossStage.SETUP;
-
         this.searchDuration = 1;
     }
 
     next(penguin) {
         switch (this.stage) {
             case TossStage.SETUP:
-                penguin.target = this.findTarget();
+                penguin.target = this.findTargetPoint();
                 penguin.setState(PenguinState.RUNNING);
                 this.stage = TossStage.RUNNING;
             break;
             case TossStage.RUNNING:
                 this.setSearchDuration();
+                this.target.setState(FolderState.OPEN);
+
                 penguin.setState(PenguinState.SEARCHING);
                 this.stage = TossStage.SEARCHING;
             break;
             case TossStage.SEARCHING:
                 if (--this.searchDuration > 0) break;
+                this.target.setState(FolderState.EMPTY);
+
                 penguin.setState(PenguinState.TOSSING);
                 this.stage = TossStage.TOSSING;
             break;
             case TossStage.TOSSING:
                 spawnRandomFile();
                 this.setSearchDuration();
+                this.target.setState(FolderState.OPEN);
+
                 penguin.setState(PenguinState.SEARCHING);
                 this.stage = TossStage.SEARCHING;
             break;
@@ -167,8 +179,8 @@ class TossBehaviour {
         this.searchDuration = 1 + ((Math.random() * 10)|0);
     }
 
-    findTarget() {
-        return getCenter(this.targetElement);
+    findTargetPoint() {
+        return getCenter(this.target.el);
     }
 }
 
@@ -313,7 +325,7 @@ class Folder {
         this.x = x;
         this.y = y;
         this.name = name;
-        this.open = false;
+        this.state = FolderState.CLOSED;
         this.el = this.initElement(container);
         this.el.addEventListener('click', e => {
             e.stopPropagation();
@@ -337,12 +349,21 @@ class Folder {
         return el;
     }
 
-    setOpen(value) {
-        this.open = value;
-        if (value) {
-            this.el.classList.add('open');
-        } else {
-            this.el.classList.remove('open');
+    setState(value) {
+        this.state = value;
+
+        switch (value) {
+            case FolderState.CLOSED:
+                this.el.classList.remove('open', 'empty');
+            break;
+            case FolderState.OPEN:
+                this.el.classList.remove('empty');
+                this.el.classList.add('open');
+            break;
+            case FolderState.EMPTY:
+                this.el.classList.remove('open');
+                this.el.classList.add('empty');
+            break;
         }
     }
 

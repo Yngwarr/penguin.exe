@@ -67,7 +67,7 @@ b {
 .file > .icon {
     width: 48px;
     height: 48px;
-    background: url('../img/file.png') 0 0;
+    background: url('../img/icons.png') 0 -96px;
 }
 
 .file > span {
@@ -98,13 +98,17 @@ b {
     filter: brightness(.5) sepia(100%) hue-rotate(180deg) saturate(8);
 }
 
-.folder > .icon {
-    background: url('../img/folder.png') 0px 0px;
-}
+.file.txt > .icon, .file.cpp > .icon { background-position: 0 -48px; }
+.file.jpg > .icon, .file.png > .icon { background-position: -48px -144px; }
+.file.wav > .icon { background-position: -144px -96px; }
+.file.mp3 > .icon { background-position: -48px -96px; }
+.file.exe > .icon { background-position: -144px -144px; }
+.file.mkv > .icon { background-position: 0 -144px; }
+.file.mpg > .icon { background-position: -96px -96px; }
 
-.folder.open > .icon {
-    background-position: -48px 0;
-}
+.folder > .icon { background: url('../img/icons.png') -48px 0px; }
+.folder.open > .icon { background-position: -48px -48px; }
+.folder.empty > .icon { background-position: -96px 0px; }
 
 .browser {
     position: fixed;
