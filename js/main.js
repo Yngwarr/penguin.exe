@@ -1,3 +1,30 @@
+/**** STRINGS ****/
+
+let folderNames = [
+    "Folder (1)",
+    "Secrets",
+    "Unicorns",
+    "Ludum Dare 49",
+    "Source"
+];
+
+let fileNames = [
+    "con",
+    "main.cpp",
+    "lena.jpg",
+    "SYNTHWAVE.wav",
+    "keygen.exe",
+    "winlogon.exe",
+    "unicorn.jpg",
+    "cheats.txt",
+    "passwords.doc",
+    "secrets_DONT_OPEN.docx",
+    "penguin.png",
+    "DiggyHole.mp3",
+    "internet.zip",
+    "hl3.rar"
+];
+
 /**** CLASSES ****/
 
 class Animation {
@@ -137,12 +164,16 @@ class Penguin {
 }
 
 class Folder {
-    constructor(x, y, container) {
+    constructor(x, y, name, container) {
         this.x = x;
         this.y = y;
+        this.name = name;
         this.open = false;
         this.el = this.initElement(container);
-        this.el.addEventListener('click', e => this.select());
+        this.el.addEventListener('click', e => {
+            e.stopPropagation();
+            this.select();
+        });
 
         this.updateView();
     }
@@ -153,7 +184,7 @@ class Folder {
         const icon = document.createElement('div');
         icon.classList.add('icon');
         const span = document.createElement('span');
-        span.innerText = 'Folder';
+        span.innerText = this.name;
         el.appendChild(icon)
         el.appendChild(span);
         container.appendChild(el);
@@ -190,7 +221,6 @@ class Folder {
 class Grid {
     constructor(container, tile, offset) {
         const rect = container.getBoundingClientRect();
-        console.log(rect);
         this.w = rect.width;
         this.h = rect.height;
         this.tile = tile;
@@ -263,11 +293,6 @@ const PenguinState = {
     PRESSING: 2
 };
 
-function spawn_folder(container) {
-    const p = game.grid.addNext();
-    game.folders = new Folder(p.x, p.y, container);
-}
-
 /**** GLOBALS ****/
 
 const PENGUIN_SPEED = .125;
@@ -275,7 +300,7 @@ const PENGUIN_SIZE = 64;
 const ANIMATION_DURATION = 100;
 const TILE_SIZE = 72;
 const TILE_OFFSET = 10;
-const START_FOLDERS = 5;
+const START_FOLDERS = 6;
 const START_PENGUINS = 3;
 
 const game = {
@@ -309,11 +334,19 @@ function near(a, b) {
     return distance(a, b) < 5;
 }
 
-function unselect() {
-    document.querySelectorAll('.file.selected').forEach(el => el.classList.remove('selected'));
+function shuffle(arr) {
+    arr.sort(() => Math.random() - .5);
+}
+
+function popName(arr, defaultValue) {
+    return arr.pop() ?? `${defaultValue} (${(Math.random() * 1000 + 1)|0})`;
 }
 
 /**** GAMEPLAY ****/
+
+function unselect() {
+    document.querySelectorAll('.file.selected').forEach(el => el.classList.remove('selected'));
+}
 
 function step(t) {
     requestAnimationFrame(step);
@@ -338,10 +371,13 @@ function step(t) {
 function init() {
     const body = document.querySelector('body');
     const desktop = document.getElementById('desktop');
+
     body.addEventListener('mousemove', e => {
         game.mousePos.x = e.clientX;
         game.mousePos.y = e.clientY;
     });
+
+    desktop.addEventListener('click', e => { console.log('hey'); unselect() });
 
     game.grid = new Grid(desktop, TILE_SIZE, TILE_OFFSET);
 
@@ -370,6 +406,9 @@ function init() {
         press: [[6,5], [1,6], [2,6], [3,6], [4,6],[5,6],[5,5]]
     };
 
+    shuffle(folderNames);
+    shuffle(fileNames);
+
     for (let i = 0; i < START_PENGUINS; ++i) {
         const p = new Penguin(10, 40 * i, body, i);
         const a = new Animation(p.el, frames, 'right', PENGUIN_SIZE);
@@ -382,7 +421,7 @@ function init() {
 
     for (let i = 0; i < START_FOLDERS; ++i) {
         const p = game.grid.addRandom();
-        const f = new Folder(p.x, p.y, desktop);
+        const f = new Folder(p.x, p.y, popName(folderNames, 'Folder'), desktop);
         game.folders.push(f);
     }
 
