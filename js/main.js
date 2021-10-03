@@ -66,6 +66,7 @@ class Penguin {
         let el = document.createElement('div');
         el.classList.add('penguin');
         el.addEventListener('mousedown', () => {
+            unselect();
             this.captured = true;
         });
         el.addEventListener('mouseup', () => {
@@ -135,6 +136,57 @@ class Penguin {
     }
 }
 
+class Folder {
+    constructor(x, y, container) {
+        this.x = x;
+        this.y = y;
+        this.open = false;
+        this.el = this.initElement(container);
+        this.el.addEventListener('click', e => this.select());
+
+        this.updateView();
+    }
+
+    initElement(container) {
+        const el = document.createElement('div');
+        el.classList.add('file', 'folder');
+        const icon = document.createElement('div');
+        icon.classList.add('icon');
+        const span = document.createElement('span');
+        span.innerText = 'Folder';
+        el.appendChild(icon)
+        el.appendChild(span);
+        container.appendChild(el);
+
+        return el;
+    }
+
+    select() {
+        unselect();
+        this.el.classList.add('selected');
+    }
+
+    setOpen(value) {
+        this.open = value;
+        if (value) {
+            this.el.classList.add('open');
+        } else {
+            this.el.classList.remove('open');
+        }
+    }
+
+    setPos(x, y) {
+        this.x = x;
+        this.y = y;
+        this.updateView();
+    }
+
+    updateView() {
+        this.el.style.left = `${this.x}px`;
+        this.el.style.top = `${this.y}px`;
+    }
+}
+
 const PenguinState = {
     IDLE: 0,
     RUNNING: 1,
@@ -153,6 +205,7 @@ const game = {
 
     penguins: [],
     animations: [],
+    folders: [],
     target: null
 };
 
@@ -174,6 +227,10 @@ function direction(from, to) {
 
 function near(a, b) {
     return distance(a, b) < 5;
+}
+
+function unselect() {
+    document.querySelectorAll('.file.selected').forEach(el => el.classList.remove('selected'));
 }
 
 /**** GAMEPLAY ****/
@@ -200,6 +257,7 @@ function step(t) {
 
 function init() {
     const body = document.querySelector('body');
+    const desktop = document.getElementById('desktop');
     body.addEventListener('mousemove', e => {
         game.mousePos.x = e.clientX;
         game.mousePos.y = e.clientY;
@@ -240,6 +298,11 @@ function init() {
 
         game.penguins.push(p);
         game.animations.push(a);
+    }
+
+    for (let i = 0; i < 3; ++i) {
+        const f = new Folder(10 + i * 72, 10, desktop);
+        game.folders.push(f);
     }
 
     requestAnimationFrame(step);

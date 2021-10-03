@@ -30,12 +30,69 @@ b {
     padding: 4px;
 }
 
+.window {
+    z-index: 5;
+}
+
 .penguin {
+    z-index: 10;
     width: 32px;
     height: 32px;
     position: fixed;
     background: url('../img/penguin.png') 0px 0px;
     image-rendering: pixelated;
+}
+
+/**** FILES ****/
+
+.file {
+    z-index: 1;
+    width: 72px;
+    height: 60px;
+    position: fixed;
+
+    top: 20px;
+    left: 20px;
+}
+
+.icon {
+    margin: 0 auto;
+    image-rendering: pixelated;
+}
+
+.file > .icon {
+    width: 48px;
+    height: 48px;
+}
+
+.file > span {
+    color: white;
+    text-shadow: black 0 1px;
+    display: block;
+    /*width: 72px;*/
+    text-align: center;
+    margin: 0 auto;
+}
+
+.file.selected > span {
+    background: #0080cb;
+    text-shadow: none;
+    outline-color: rgba(0, 0, 0, .8);
+    outline-style: dotted;
+    outline-width: 1px;
+    outline-offset: -1px;
+}
+
+.file.selected > .icon {
+    filter: brightness(.5) sepia(100%) hue-rotate(180deg) saturate(8);
+}
+
+.folder > .icon {
+    background: url('../img/folder.png') 0px 0px;
+}
+
+.folder.open > .icon {
+    background-position: -48px 0;
 }
 
 .browser {
