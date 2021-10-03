@@ -190,6 +190,7 @@ class Folder {
 class Grid {
     constructor(container, tile, offset) {
         const rect = container.getBoundingClientRect();
+        console.log(rect);
         this.w = rect.width;
         this.h = rect.height;
         this.tile = tile;
@@ -201,11 +202,17 @@ class Grid {
     }
 
     add(x, y) {
-        return this.addId(flat(x, y));
+        return this.addId(this.flat(x, y));
     }
 
     addNext() {
         return this.addId(0);
+    }
+
+    addRandom() {
+        const x = (Math.random() * this.w)|0;
+        const y = (Math.random() * this.h)|0;
+        return this.add(x, y);
     }
     
     addId(_id) {
@@ -218,7 +225,7 @@ class Grid {
     }
 
     remove(x, y) {
-        const id = flat(x, y);
+        const id = this.flat(x, y);
         if (!this.pts.delete(id)) {
             console.warn(`Tried to delete ${id} from the Grid. No luck...`);
         }
@@ -258,7 +265,6 @@ const PenguinState = {
 
 function spawn_folder(container) {
     const p = game.grid.addNext();
-    console.log(p);
     game.folders = new Folder(p.x, p.y, container);
 }
 
@@ -269,6 +275,8 @@ const PENGUIN_SIZE = 64;
 const ANIMATION_DURATION = 100;
 const TILE_SIZE = 72;
 const TILE_OFFSET = 10;
+const START_FOLDERS = 5;
+const START_PENGUINS = 3;
 
 const game = {
     grid: null,
@@ -362,7 +370,7 @@ function init() {
         press: [[6,5], [1,6], [2,6], [3,6], [4,6],[5,6],[5,5]]
     };
 
-    for (let i = 0; i < 1; ++i) {
+    for (let i = 0; i < START_PENGUINS; ++i) {
         const p = new Penguin(10, 40 * i, body, i);
         const a = new Animation(p.el, frames, 'right', PENGUIN_SIZE);
 
@@ -372,8 +380,9 @@ function init() {
         game.animations.push(a);
     }
 
-    for (let i = 0; i < 3; ++i) {
-        const f = new Folder(TILE_OFFSET + i * TILE_SIZE, TILE_OFFSET, desktop);
+    for (let i = 0; i < START_FOLDERS; ++i) {
+        const p = game.grid.addRandom();
+        const f = new Folder(p.x, p.y, desktop);
         game.folders.push(f);
     }
 
