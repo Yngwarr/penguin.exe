@@ -16,6 +16,14 @@ b {
     display: none;
 }
 
+#start-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: url('../img/logos.png') -16px 0;
+    image-rendering: pixelated;
+}
+
 #desktop {
     width: 100vw;
     height: 100vh;
@@ -109,6 +117,7 @@ b {
 .file.exe > .icon { background-position: -144px -144px; }
 .file.mkv > .icon { background-position: 0 -144px; }
 .file.mpg > .icon { background-position: -96px -96px; }
+.file.zip > .icon, .file.rar > .icon { background-position: 0 -191px; }
 
 .folder > .icon { background: url('../img/icons.png') -48px 0px; }
 .folder.open > .icon { background-position: -48px -48px; }

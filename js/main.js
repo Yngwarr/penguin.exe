@@ -26,6 +26,8 @@ const START_FOLDERS = 10;
 const START_PENGUINS = 3;
 const MAX_PENGUINS = 5;
 const SPAWN_RATE = 1000; //ms
+const MIN_SEARCH_DURATION = 2;
+const MAX_SEARCH_DURATION = 15;
 
 const ANIMATION_FRAMES = {
     idle: [[0,0], [1,0]],
@@ -212,7 +214,8 @@ class TossBehaviour {
     }
 
     setSearchDuration() {
-        this.searchDuration = 1 + ((Math.random() * 10)|0);
+        this.searchDuration = MIN_SEARCH_DURATION
+            + ((Math.random() * (MAX_SEARCH_DURATION - MIN_SEARCH_DURATION))|0);
     }
 
     findTargetPoint() {
@@ -637,7 +640,7 @@ function sample(arr) {
 }
 
 function popName(arr, defaultValue) {
-    return arr.pop() ?? `${defaultValue} (${(Math.random() * 1000 + 1)|0})`;
+    return arr.pop() ?? `${defaultValue} (${(Math.random() * 1000 + 1)|0}).${sample(EXTENSIONS)}`;
 }
 
 /**** GAMEPLAY ****/
