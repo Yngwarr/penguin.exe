@@ -187,19 +187,91 @@ class Folder {
     }
 }
 
+class Grid {
+    constructor(container, tile, offset) {
+        const rect = container.getBoundingClientRect();
+        this.w = rect.width;
+        this.h = rect.height;
+        this.tile = tile;
+        this.offset = offset;
+        this.pts = new Set();
+
+        this.tw = ((this.w - offset) / this.tile)|0;
+        this.th = ((this.h - offset) / this.tile)|0;
+    }
+
+    add(x, y) {
+        return this.addId(flat(x, y));
+    }
+
+    addNext() {
+        return this.addId(0);
+    }
+    
+    addId(_id) {
+        let id = _id;
+        while (this.pts.has(id)) {
+            ++id;
+        }
+        this.pts.add(id);
+        return this.unflat(id);
+    }
+
+    remove(x, y) {
+        const id = flat(x, y);
+        if (!this.pts.delete(id)) {
+            console.warn(`Tried to delete ${id} from the Grid. No luck...`);
+        }
+    }
+
+    gridCoords(x, y) {
+        return {
+            x: ((x - this.offset) / this.tile)|0,
+            y: ((y - this.offset) / this.tile)|0,
+        }
+    }
+
+    snap(x, y) {
+        const gc = this.gridCoords(x, y);
+        const sx = gc.x * this.tile + this.offset;
+        const sy = gc.y * this.tile + this.offset;
+        return { x: sx, y: sy };
+    }
+
+    flat(x, y) {
+        const gc = this.gridCoords(x, y);
+        return gc.y * this.th + gc.x;
+    }
+
+    unflat(id) {
+        const tx = (id / this.th)|0;
+        const ty = id % this.th;
+        return { x: tx * this.tile + this.offset, y: ty * this.tile + this.offset };
+    }
+}
+
 const PenguinState = {
     IDLE: 0,
     RUNNING: 1,
     PRESSING: 2
 };
 
+function spawn_folder(container) {
+    const p = game.grid.addNext();
+    console.log(p);
+    game.folders = new Folder(p.x, p.y, container);
+}
+
 /**** GLOBALS ****/
 
 const PENGUIN_SPEED = .125;
 const PENGUIN_SIZE = 64;
 const ANIMATION_DURATION = 100;
+const TILE_SIZE = 72;
+const TILE_OFFSET = 10;
 
 const game = {
+    grid: null,
     prevFrame: null,
     mousePos: { x: 0, y: 0 },
 
@@ -263,6 +335,8 @@ function init() {
         game.mousePos.y = e.clientY;
     });
 
+    game.grid = new Grid(desktop, TILE_SIZE, TILE_OFFSET);
+
     game.target = document.querySelector('#no-clickin');
     const t = getCenter(game.target);
 
@@ -299,7 +373,7 @@ function init() {
     }
 
     for (let i = 0; i < 3; ++i) {
-        const f = new Folder(10 + i * 72, 10, desktop);
+        const f = new Folder(TILE_OFFSET + i * TILE_SIZE, TILE_OFFSET, desktop);
         game.folders.push(f);
     }
 
