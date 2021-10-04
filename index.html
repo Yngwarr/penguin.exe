@@ -8,9 +8,10 @@
 		<link href='https://unpkg.com/98.css' rel='stylesheet'>
 		<link href='css/main.css' rel='stylesheet'>
 		<link href='css/progress.css' rel='stylesheet'>
+		<script src='js/3rd/howler.core.min.js'></script>
 		<script src='js/main.js'></script>
 	</head>
-	<body onload='init()'>
+	<body>
         <div id='desktop'>
             <!--<div class='browser window'>-->
                 <!--<div class='title-bar'>-->
@@ -93,6 +94,9 @@
             <pre>                      '-'</pre>
             <pre> </pre>
             <pre> </pre>
+        </div>
+        <div id='clickme' class='fullscreen' onclick='init()'>
+            <img src='img/power.png'>
         </div>
         <div id='selection' class='hidden'></div>
 	</body>

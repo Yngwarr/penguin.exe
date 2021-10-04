@@ -202,6 +202,7 @@ class TossBehaviour {
 
                 penguin.setState(PenguinState.SEARCHING);
                 this.stage = TossStage.SEARCHING;
+                sounds.happy.play();
             break;
             case TossStage.SEARCHING:
                 if (--this.searchDuration > 0) break;
@@ -264,6 +265,12 @@ class Penguin {
             unselectAll();
             this.captured = true;
             this.setState(PenguinState.HANGING);
+
+            if (Math.random() > .1) {
+                sounds.ayay.play();
+            } else {
+                sounds.stopit.play();
+            }
         });
         el.addEventListener('mouseup', () => {
             this.captured = false;
@@ -376,6 +383,8 @@ class Penguin {
         if (this.state === PenguinState.GETTING_UP && isOver(game.bin.el, this.x, this.y)) {
             this.setState(PenguinState.DEAD);
             ++game.score;
+            sounds.toss.play();
+            game.bin.fill();
         }
 
         if (this.state === PenguinState.RUNNING) {
@@ -507,6 +516,7 @@ class Bin {
     constructor(x, y, container) {
         this.x = x;
         this.y = y;
+        this.full = false;
 
         this.el = this.initElement(container);
         this.el.addEventListener('click', e => {
@@ -520,6 +530,11 @@ class Bin {
         });
 
         this.updateView();
+    }
+
+    fill() {
+        if (this.full) return;
+        this.el.classList.add('full');
     }
 
     initElement(container) {
@@ -771,8 +786,51 @@ const game = {
     selected: null
 };
 
+const sounds = {};
+
+function initSounds() {
+    sounds['startup'] = new Howl({
+        src: ['../sfx/startup.wav']
+    });
+    sounds['welcome'] = new Howl({
+        src: ['../sfx/welcome.wav']
+    });
+    sounds['click'] = new Howl({
+        src: ['../sfx/click.wav']
+    });
+    sounds['spawn'] = new Howl({
+        src: ['../sfx/spawn.wav']
+    });
+    sounds['happy'] = new Howl({
+        src: ['../sfx/happy.wav'],
+        volume: .8
+    });
+    sounds['ayay'] = new Howl({
+        src: ['../sfx/ayay.wav']
+    });
+    sounds['stopit'] = new Howl({
+        src: ['../sfx/stopit.wav']
+    });
+    sounds['error'] = new Howl({
+        src: ['../sfx/error.wav']
+    });
+    sounds['toss'] = new Howl({
+        src: ['../sfx/toss.wav']
+    });
+
+    sounds['game_music'] = new Howl({
+        src: ['../sfx/Boiler.ogg'],
+        loop: true,
+        volume: .3
+    });
+    sounds['fin_music'] = new Howl({
+        src: ['../sfx/Moody Dungeon.ogg'],
+        loop: true,
+        volume: .1
+    });
+}
+
 function grabSelection() {
-    console.log('eee');
     game.desktop.classList.add('moving');
     game.selectionGrabbed = true;
 }
@@ -832,21 +890,28 @@ function boot() {
     const fin = con.childElementCount;
     let idx = 0;
 
-    const interval = setInterval(() => {
-        if (idx >= fin) {
-            clearInterval(interval);
-            con.classList.add('hidden');
-            showSplash();
-            return;
-        }
-        con.children[idx].classList.add('shown');
-        ++idx;
-    }, 100);
+    sounds.startup.play();
+
+    setTimeout(() => {
+        const interval = setInterval(() => {
+            if (idx >= fin) {
+                clearInterval(interval);
+                con.classList.add('hidden');
+                showSplash();
+                return;
+            }
+            con.children[idx].classList.add('shown');
+            ++idx;
+        }, 100);
+    }, 1000)
 }
 
 function showSplash() {
     const splash = document.getElementById('loading');
-    setTimeout(() => splash.classList.add('hidden'), 4000);
+    setTimeout(() => {
+        sounds.welcome.play();
+        setTimeout(() => splash.classList.add('hidden'), 1000);
+    }, 2000);
 }
 
 function select(file, exclusive = true) {
@@ -891,9 +956,16 @@ function startGame() {
     // TODO add sounds, vfx, etc.
     randomizeFolders();
     game.state = GameState.RUNNING;
+    sounds.game_music.play();
 }
 
 function gameOver() {
+    sounds.game_music.stop();
+    sounds.error.play();
+    setTimeout(() => {
+        const id = sounds.fin_music.play();
+        sounds.fin_music.fade(0, .1, 2000, id);
+    }, 1000);
     game.state = GameState.PAUSED;
     document.getElementById('score').innerText = game.score;
     document.getElementById('bsod').classList.remove('hidden');
@@ -991,9 +1063,13 @@ function spawnPenguin(container) {
     game.penguins.push(p);
     game.animations.push(a);
     ++game.penguinsAlive;
+    
+    sounds.spawn.play();
 }
 
 function init() {
+    document.getElementById('clickme').classList.add('hidden');
+    initSounds();
     boot();
 
     const body = document.querySelector('body');
@@ -1018,6 +1094,8 @@ function init() {
                 game.files.delete(f);
             }
             unselectAll();
+            sounds.toss.play();
+            game.bin.fill();
         }
         ungrabSelection();
     })
@@ -1030,6 +1108,8 @@ function init() {
     });
 
     desktop.addEventListener('mousedown', e => {
+        sounds.click.play();
+
         if (e.path[0].id !== 'desktop') return;
 
         game.selectionCtrl.setOri(e.clientX, e.clientY);
