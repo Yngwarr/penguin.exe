@@ -771,8 +771,10 @@ function tick(t) {
 }
 
 function notPausedTick() {
-    game.cpu = 1 + Math.random() * 3.5 + game.penguinsAlive;
-    game.ram = 1 + Math.random() * 4 + game.files.size;
+    game.cpu = 1 + Math.random() * 3.5
+        + game.penguinsAlive;
+    game.ram = 1 + Math.random() * 4
+        + .5 * game.files.size;
     game.indicators.update(game.cpu, game.ram);
 }
 
