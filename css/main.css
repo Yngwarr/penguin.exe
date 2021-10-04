@@ -1,6 +1,6 @@
 @font-face {
     font-family: IBM;
-    src: url('../font/PxPlus_IBM_CGA.ttf');
+    src: url('../font/PxPlus_IBM_CGA.ttf') format('ttf');
 }
 
 body {
@@ -13,7 +13,7 @@ b {
 }
 
 .hidden {
-    display: none;
+    display: none!important;
 }
 
 .indicators {
@@ -45,6 +45,39 @@ b {
     background: url('../img/bliss.png') no-repeat;
     background-size: 100% 100%;
     /*image-rendering: pixelated;*/
+}
+
+#bsod {
+    z-index: 15;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: blue;
+    color: white;
+
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
+#bsod * {
+    font-family: IBM, monospace;
+    font-size: 24px;
+}
+
+#bsod > * {
+    padding: 24px 0;
+}
+
+#bsod > h1 {
+    display: inline-block;
+    background: white;
+    color: blue;
+    padding: 4px 24px;
+    align: center;
 }
 
 #taskbar {

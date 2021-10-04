@@ -18,6 +18,7 @@ const COS_13 = Math.cos(13 * Math.PI/8);
 const COS_15 = Math.cos(15 * Math.PI/8);
 
 const CRITICAL_LOAD = 80;
+const FRAME_SKIPS_TO_BSOD = 512;
 const PENGUIN_SPEED = .125;
 const PENGUIN_SIZE = 64;
 const ANIMATION_DURATION = 100;
@@ -374,6 +375,7 @@ class Penguin {
 
         if (this.state === PenguinState.GETTING_UP && game.bin.isOver(this.x, this.y)) {
             this.setState(PenguinState.DEAD);
+            ++game.score;
         }
 
         if (this.state === PenguinState.RUNNING) {
@@ -674,6 +676,8 @@ const game = {
     state: GameState.STARTING,
     cpu: 0,
     ram: 0,
+    frameSkips: 0,
+    score: 0,
 
     penguins: [],
     penguinsAlive: 0,
@@ -750,6 +754,12 @@ function startGame() {
     game.state = GameState.RUNNING;
 }
 
+function gameOver() {
+    game.state = GameState.PAUSED;
+    document.getElementById('score').innerText = game.score;
+    document.getElementById('bsod').classList.remove('hidden');
+}
+
 function tick(t) {
     requestAnimationFrame(tick);
 
@@ -758,8 +768,20 @@ function tick(t) {
     }
 
     if (game.state !== GameState.RUNNING) return;
-    if (game.ram >= 100 && Math.random() > .1) return;
-    if (game.cpu >= 100 && Math.random() > .1) return;
+
+    if (game.ram >= 100 && Math.random() > .1) {
+        ++game.frameSkips;
+        return;
+    }
+    if (game.cpu >= 100 && Math.random() > .1) {
+        ++game.frameSkips;
+        return;
+    }
+
+    if (game.frameSkips >= FRAME_SKIPS_TO_BSOD) {
+        gameOver();
+        return;
+    }
 
     if (game.prevFrame === null) {
         game.prevFrame = t;
