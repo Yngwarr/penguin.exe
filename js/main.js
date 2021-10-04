@@ -24,12 +24,16 @@ const PENGUIN_SIZE = 64;
 const ANIMATION_DURATION = 100;
 const TILE_SIZE = 72;
 const TILE_OFFSET = 10;
-const START_FOLDERS = 10;
+const START_FOLDERS = 20;
 const START_PENGUINS = 3;
-const MAX_PENGUINS = 10;
+const MAX_PENGUINS = 50;
 const SPAWN_RATE = 1000; //ms
+const SPAWN_DELTA = 3000; //ms
 const MIN_SEARCH_DURATION = 2;
 const MAX_SEARCH_DURATION = 15;
+
+const PENGUIN_CPU_LOAD = 1.5;
+const FILE_RAM_LOAD = .7;
 
 const ANIMATION_FRAMES = {
     idle: [[0,0], [1,0]],
@@ -68,7 +72,8 @@ const PenguinState = {
     SEARCHING: 5,
     TOSSING: 6,
     PRESSING: 7,
-    DEAD: 8
+    DEAD: 8,
+    DANCING: 9
 };
 
 const FolderState = {
@@ -82,6 +87,12 @@ const TossStage = {
     RUNNING: 1,
     SEARCHING: 2,
     TOSSING: 3
+};
+
+const WanderStage = {
+    SETUP: 0,
+    RUNNING: 1,
+    DANCING: 2
 };
 
 /**** STRINGS ****/
@@ -179,7 +190,8 @@ class Animation {
 
 function updateBehaviour(penguin) {
     // TODO recycle previous behaviour
-    return new TossBehaviour(sample(game.folders));
+    const roll = Math.random();
+    return roll > .5 ? new TossBehaviour(sample(game.folders)) : new WanderBehaviour();
 }
 
 class TossBehaviour {
@@ -230,6 +242,37 @@ class TossBehaviour {
     findTargetPoint() {
         const c = getCenter(this.target.el);
         return { x: c.x + 16, y: c.y };
+    }
+}
+
+class WanderBehaviour {
+    constructor() {
+        this.stage = WanderStage.SETUP;
+    }
+
+    next(penguin) {
+        switch (this.stage) {
+            case WanderStage.SETUP:
+                penguin.target = this.randomPt();
+                penguin.setState(PenguinState.RUNNING);
+                this.stage = WanderStage.RUNNING;
+            break;
+            case WanderStage.RUNNING:
+                setTimeout(() => this.next(penguin), 3000 + Math.random() * 2000);
+                penguin.setState(PenguinState.DANCING);
+                this.stage = WanderStage.DANCING;
+            break;
+            case WanderStage.DANCING:
+                penguin.target = this.randomPt();
+                penguin.setState(PenguinState.RUNNING);
+                this.stage = WanderStage.RUNNING;
+            break;
+        }
+    }
+
+    randomPt() {
+        const rect = game.desktop.getBoundingClientRect();
+        return { x: Math.random() * rect.width, y: Math.random() * rect.height };
     }
 }
 
@@ -322,6 +365,7 @@ class Penguin {
     setState(state) {
         switch (state) {
             case PenguinState.IDLE:
+            case PenguinState.DANCING:
                 game.animations[this.animId].setAnim('idle');
             break;
             case PenguinState.RUNNING:
@@ -747,7 +791,8 @@ class SelectionCtrl {
         this.setDest(game.mousePos.x, game.mousePos.y);
 
         forAllSelectable(f => {
-            if (!isOver(game.selectionCtrl.el, f.x, f.y)) {
+            const p = getCenter(f.el);
+            if (!isOver(game.selectionCtrl.el, p.x, p.y)) {
                 unselect(f);
                 return;
             }
@@ -790,41 +835,41 @@ const sounds = {};
 
 function initSounds() {
     sounds['startup'] = new Howl({
-        src: ['../sfx/startup.wav']
+        src: ['sfx/startup.wav']
     });
     sounds['welcome'] = new Howl({
-        src: ['../sfx/welcome.wav']
+        src: ['sfx/welcome.wav']
     });
     sounds['click'] = new Howl({
-        src: ['../sfx/click.wav']
+        src: ['sfx/click.wav']
     });
     sounds['spawn'] = new Howl({
-        src: ['../sfx/spawn.wav']
+        src: ['sfx/spawn.wav']
     });
     sounds['happy'] = new Howl({
-        src: ['../sfx/happy.wav'],
+        src: ['sfx/happy.wav'],
         volume: .8
     });
     sounds['ayay'] = new Howl({
-        src: ['../sfx/ayay.wav']
+        src: ['sfx/ayay.wav']
     });
     sounds['stopit'] = new Howl({
-        src: ['../sfx/stopit.wav']
+        src: ['sfx/stopit.wav']
     });
     sounds['error'] = new Howl({
-        src: ['../sfx/error.wav']
+        src: ['sfx/error.wav']
     });
     sounds['toss'] = new Howl({
-        src: ['../sfx/toss.wav']
+        src: ['sfx/toss.wav']
     });
 
     sounds['game_music'] = new Howl({
-        src: ['../sfx/Boiler.ogg'],
+        src: ['sfx/Boiler.ogg'],
         loop: true,
         volume: .3
     });
     sounds['fin_music'] = new Howl({
-        src: ['../sfx/Moody Dungeon.ogg'],
+        src: ['sfx/Moody Dungeon.ogg'],
         loop: true,
         volume: .1
     });
@@ -1010,17 +1055,19 @@ function notPausedTick() {
     game.selectionCtrl.tick();
 
     game.cpu = 1 + Math.random() * 3.5
-        + game.penguinsAlive;
+        + PENGUIN_CPU_LOAD * game.penguinsAlive;
     game.ram = 1 + Math.random() * 4
-        + .7 * game.files.size;
+        + FILE_RAM_LOAD * game.files.size;
     game.indicators.update(game.cpu, game.ram);
 }
 
 function gameTick(dt) {
-    game.toNextSpawn -= dt;
+    if (game.penguinsAlive < MAX_PENGUINS) {
+        game.toNextSpawn -= dt;
+    }
     if (game.toNextSpawn <= 0 && game.penguinsAlive < MAX_PENGUINS) {
         spawnPenguin(game.body);
-        game.toNextSpawn = SPAWN_RATE;
+        game.toNextSpawn = SPAWN_RATE + Math.random() * SPAWN_DELTA;
     }
 
     for (let p of game.penguins) {
