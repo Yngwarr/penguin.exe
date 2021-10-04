@@ -594,6 +594,7 @@ class Grid {
 const game = {
     prevFrame: null,
     toNextSpawn: SPAWN_RATE, 
+    paused: false,
 
     penguins: [],
     penguinsAlive: 0,
@@ -662,6 +663,8 @@ function spawnRandomFile() {
 
 function tick(t) {
     requestAnimationFrame(tick);
+
+    if (game.paused) return;
 
     if (game.prevFrame === null) {
         game.prevFrame = t;
