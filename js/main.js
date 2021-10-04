@@ -639,6 +639,7 @@ class IndicatorCtrl {
         this.ram = 0;
         this.cpuEl = document.getElementById('cpu-progress');
         this.ramEl = document.getElementById('ram-progress');
+        this.update(5, 3);
     }
 
     update(cpu, ram) {
@@ -752,6 +753,10 @@ function startGame() {
 function tick(t) {
     requestAnimationFrame(tick);
 
+    if (game.state !== GameState.PAUSED) {
+        notPausedTick();
+    }
+
     if (game.state !== GameState.RUNNING) return;
 
     if (game.prevFrame === null) {
@@ -762,6 +767,16 @@ function tick(t) {
 
     if (dt > 1e3) return;
 
+    gameTick(dt);
+}
+
+function notPausedTick() {
+    game.cpu = 1 + Math.random() * 3.5 + game.penguinsAlive;
+    game.ram = 1 + Math.random() * 4 + game.files.size;
+    game.indicators.update(game.cpu, game.ram);
+}
+
+function gameTick(dt) {
     game.toNextSpawn -= dt;
     if (game.toNextSpawn <= 0 && game.penguinsAlive < MAX_PENGUINS) {
         spawnPenguin(game.body);
@@ -775,10 +790,6 @@ function tick(t) {
     for (let a of game.animations) {
         a.tick(dt);
     }
-
-    game.cpu = game.penguinsAlive;
-    game.ram = game.files.size;
-    game.indicators.update(game.cpu, game.ram);
 }
 
 function spawnBin(container) {
