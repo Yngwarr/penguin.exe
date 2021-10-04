@@ -395,7 +395,7 @@ class Folder {
         this.el = this.initElement(container);
         this.el.addEventListener('click', e => {
             e.stopPropagation();
-            select(this.el);
+            select(this.el, !e.ctrlKey);
         });
 
         this.updateView();
@@ -453,7 +453,7 @@ class File {
         this.el = this.initElement(container);
         this.el.addEventListener('click', e => {
             e.stopPropagation();
-            select(this.el);
+            select(this.el, !e.ctrlKey);
         });
 
         this.updateView();
@@ -497,7 +497,7 @@ class Bin {
         this.el = this.initElement(container);
         this.el.addEventListener('click', e => {
             e.stopPropagation();
-            select(this.el);
+            select(this.el, !e.ctrlKey);
         });
 
         this.updateView();
@@ -531,7 +531,7 @@ class GameStarter {
         this.el = this.initElement(container);
         this.el.addEventListener('click', e => {
             e.stopPropagation();
-            select(this.el);
+            select(this.el, !e.ctrlKey);
         });
         this.el.addEventListener('dblclick', e => {
             startGame();
@@ -781,8 +781,8 @@ function isOver(el, x, y) {
 
 /**** GAMEPLAY ****/
 
-function select(el) {
-    unselect();
+function select(el, exclusive = true) {
+    if (exclusive) unselect();
     el.classList.add('selected');
 }
 
