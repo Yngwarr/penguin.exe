@@ -261,7 +261,7 @@ class Penguin {
         let el = document.createElement('div');
         el.classList.add('penguin');
         el.addEventListener('mousedown', () => {
-            unselect();
+            unselectAll();
             this.captured = true;
             this.setState(PenguinState.HANGING);
         });
@@ -706,6 +706,14 @@ class SelectionCtrl {
         if (!this.visible) return;
 
         this.setDest(game.mousePos.x, game.mousePos.y);
+
+        for (const f of game.files) {
+            if (!isOver(game.selection.el, f.x, f.y)) {
+                unselect(f.el);
+                continue;
+            }
+            select(f.el, false);
+        }
     }
 }
 
@@ -727,6 +735,7 @@ const game = {
     files: null,
 
     mousePos: { x: 0, y: 0 },
+    clickT: 0,
     body: null,
     desktop: null,
     indicators: null,
@@ -782,11 +791,15 @@ function isOver(el, x, y) {
 /**** GAMEPLAY ****/
 
 function select(el, exclusive = true) {
-    if (exclusive) unselect();
+    if (exclusive) unselectAll();
     el.classList.add('selected');
 }
 
-function unselect() {
+function unselect(el) {
+    el.classList.remove('selected');
+}
+
+function unselectAll() {
     document.querySelectorAll('.file.selected').forEach(el => el.classList.remove('selected'));
 }
 
@@ -923,15 +936,20 @@ function init() {
         game.mousePos.y = e.clientY;
     });
 
-    body.addEventListener('mouseup', e => {
+    body.addEventListener('mousedown', e => {
+        game.clickT = e.timeStamp;
+    });
+
+    body.addEventListener('click', e => {
+        if (e.timeStamp - game.clickT < 100) {
+            unselectAll();
+        }
         game.selection.hide();
     });
 
-    desktop.addEventListener('click', e => {
-        unselect();
-    });
-
     desktop.addEventListener('mousedown', e => {
+        if (e.path[0].id !== 'desktop') return;
+
         game.selection.setOri(e.clientX, e.clientY);
         game.selection.show();
     });
