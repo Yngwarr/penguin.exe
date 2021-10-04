@@ -827,6 +827,28 @@ function isOver(el, x, y) {
 
 /**** GAMEPLAY ****/
 
+function boot() {
+    const con = document.getElementById('boot');
+    const fin = con.childElementCount;
+    let idx = 0;
+
+    const interval = setInterval(() => {
+        if (idx >= fin) {
+            clearInterval(interval);
+            con.classList.add('hidden');
+            showSplash();
+            return;
+        }
+        con.children[idx].classList.add('shown');
+        ++idx;
+    }, 100);
+}
+
+function showSplash() {
+    const splash = document.getElementById('loading');
+    setTimeout(() => splash.classList.add('hidden'), 4000);
+}
+
 function select(file, exclusive = true) {
     if (exclusive) unselectAll();
     file.el.classList.add('selected');
@@ -972,6 +994,8 @@ function spawnPenguin(container) {
 }
 
 function init() {
+    boot();
+
     const body = document.querySelector('body');
     const desktop = document.getElementById('desktop');
     game.body = body;

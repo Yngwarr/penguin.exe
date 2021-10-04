@@ -61,13 +61,16 @@ b {
     pointer-events: none;
 }
 
-#bsod {
-    z-index: 15;
+.fullscreen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
+}
+
+#bsod {
+    z-index: 15;
     background: blue;
     color: white;
 
@@ -78,7 +81,7 @@ b {
 }
 
 #bsod * {
-    font-family: IBM, monospace;
+    font-family: monospace;
     font-size: 24px;
 }
 
@@ -92,6 +95,35 @@ b {
     color: blue;
     padding: 4px 24px;
     align: center;
+}
+
+#loading {
+    z-index: 16;
+    background: url('../img/splash.png') no-repeat;
+    background-size: 100% 100%;
+}
+
+#boot {
+    z-index: 17;
+    background: black;
+}
+
+#boot > * {
+    margin: 8px 16px;
+}
+
+#boot > pre {
+    display: none;
+    background: none;
+    color: white;
+    font-family: monospace;
+    font-size: 24px;
+    box-shadow: none;
+    padding: 0;
+}
+
+#boot > pre.shown {
+    display: block;
 }
 
 #taskbar {
