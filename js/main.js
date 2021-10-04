@@ -395,7 +395,7 @@ class Folder {
         this.el = this.initElement(container);
         this.el.addEventListener('click', e => {
             e.stopPropagation();
-            select(this.el, !e.ctrlKey);
+            select(this, !e.ctrlKey);
         });
 
         this.updateView();
@@ -453,7 +453,12 @@ class File {
         this.el = this.initElement(container);
         this.el.addEventListener('click', e => {
             e.stopPropagation();
-            select(this.el, !e.ctrlKey);
+            select(this, !e.ctrlKey);
+        });
+        this.el.addEventListener('mousedown', e => {
+            if (this.el.classList.contains('selected')) {
+                game.selectionGrabbed = true;
+            }
         });
 
         this.updateView();
@@ -497,7 +502,7 @@ class Bin {
         this.el = this.initElement(container);
         this.el.addEventListener('click', e => {
             e.stopPropagation();
-            select(this.el, !e.ctrlKey);
+            select(this, !e.ctrlKey);
         });
 
         this.updateView();
@@ -531,7 +536,7 @@ class GameStarter {
         this.el = this.initElement(container);
         this.el.addEventListener('click', e => {
             e.stopPropagation();
-            select(this.el, !e.ctrlKey);
+            select(this, !e.ctrlKey);
         });
         this.el.addEventListener('dblclick', e => {
             startGame();
@@ -707,13 +712,13 @@ class SelectionCtrl {
 
         this.setDest(game.mousePos.x, game.mousePos.y);
 
-        for (const f of game.files) {
-            if (!isOver(game.selection.el, f.x, f.y)) {
-                unselect(f.el);
-                continue;
+        forAllSelectable(f => {
+            if (!isOver(game.selectionCtrl.el, f.x, f.y)) {
+                unselect(f);
+                return;
             }
-            select(f.el, false);
-        }
+            select(f, false);
+        });
     }
 }
 
@@ -736,13 +741,15 @@ const game = {
 
     mousePos: { x: 0, y: 0 },
     clickT: 0,
+    selectionGrabbed: false,
     body: null,
     desktop: null,
     indicators: null,
     grid: null,
     bin: null,
     starter: null,
-    selection: null
+    selectionCtrl: null,
+    selected: null
 };
 
 /**** HELPERS ****/
@@ -790,17 +797,25 @@ function isOver(el, x, y) {
 
 /**** GAMEPLAY ****/
 
-function select(el, exclusive = true) {
+function select(file, exclusive = true) {
     if (exclusive) unselectAll();
-    el.classList.add('selected');
+    file.el.classList.add('selected');
+    game.selected.add(file);
 }
 
-function unselect(el) {
-    el.classList.remove('selected');
+function forAllSelectable(fun) {
+    for (const f of game.files) fun(f);
+    for (const f of game.folders) fun(f);
+    fun(game.bin);
+    fun(game.starter);
+}
+
+function unselect(file) {
+    file.el.classList.remove('selected');
 }
 
 function unselectAll() {
-    document.querySelectorAll('.file.selected').forEach(el => el.classList.remove('selected'));
+    forAllSelectable(unselect);
 }
 
 function spawnRandomFile() {
@@ -867,7 +882,7 @@ function tick(t) {
 }
 
 function notPausedTick() {
-    game.selection.tick();
+    game.selectionCtrl.tick();
 
     game.cpu = 1 + Math.random() * 3.5
         + game.penguinsAlive;
@@ -939,25 +954,33 @@ function init() {
     body.addEventListener('mousedown', e => {
         game.clickT = e.timeStamp;
     });
+    
+    body.addEventListener('mouseup', e => {
+        if (game.selectionGrabbed && isOver(game.bin.el, game.mousePos.x, game.mousePos.y)) {
+            // TODO delet
+        }
+        game.selectionGrabbed = false;
+    })
 
     body.addEventListener('click', e => {
         if (e.timeStamp - game.clickT < 100) {
             unselectAll();
         }
-        game.selection.hide();
+        game.selectionCtrl.hide();
     });
 
     desktop.addEventListener('mousedown', e => {
         if (e.path[0].id !== 'desktop') return;
 
-        game.selection.setOri(e.clientX, e.clientY);
-        game.selection.show();
+        game.selectionCtrl.setOri(e.clientX, e.clientY);
+        game.selectionCtrl.show();
     });
 
     game.files = new Set();
     game.grid = new Grid(desktop, TILE_SIZE, TILE_OFFSET);
     game.indicators = new IndicatorCtrl();
-    game.selection = new SelectionCtrl();
+    game.selectionCtrl = new SelectionCtrl();
+    game.selected = new Set();
 
     shuffle(folderNames);
     shuffle(fileNames);
