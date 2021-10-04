@@ -4,7 +4,7 @@
 }
 
 body {
-	background: teal;
+	/*background: teal;*/
     user-select: none;
 }
 
@@ -27,6 +27,9 @@ b {
 #desktop {
     width: 100vw;
     height: 100vh;
+    background: url('../img/bliss.png') no-repeat;
+    background-size: 100% 100%;
+    /*image-rendering: pixelated;*/
 }
 
 #taskbar {
