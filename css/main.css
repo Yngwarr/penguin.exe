@@ -16,6 +16,21 @@ b {
     display: none;
 }
 
+.indicators {
+    vertical-align: middle;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.tray {
+    align-items: center;
+}
+
+.tray > p {
+    padding: 4px 4px;
+    margin-right: 8px;
+}
+
 #start-icon {
     display: inline-block;
     width: 16px;
@@ -37,6 +52,10 @@ b {
     bottom: 0;
     height: 24px;
     width: 100vw;
+    
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
 }
 
 #start > b {

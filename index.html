@@ -7,6 +7,7 @@
 		<link href='css/reset.css' rel='stylesheet'>
 		<link href='https://unpkg.com/98.css' rel='stylesheet'>
 		<link href='css/main.css' rel='stylesheet'>
+		<link href='css/progress.css' rel='stylesheet'>
 		<script src='js/main.js'></script>
 	</head>
 	<body onload='init()'>
@@ -28,6 +29,31 @@
                     <div id='start-icon'></div>
                     <b>Start</b>
                 </button>
+                <div class='status-bar indicators'>
+                    <p class='status-bar-field'>
+                        CPU
+                    </p>
+                    <div class='status-bar-field'>
+                        <div class='progress'>
+                            <div class='progress-bar progress-bar-blocks' style='width: 70%'>
+                            </div>
+                        </div>
+                    </div>
+                    <p class='status-bar-field'>
+                        RAM
+                    </p>
+                    <div class='status-bar-field'>
+                        <div class='progress'>
+                            <div class='progress-bar progress-bar-blocks' style='width: 70%'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class='status-bar tray'>
+                    <p class='status-bar-field'>
+                        13:37
+                    </p>
+                </div>
             </footer>
         </div>
 	</body>
