@@ -625,7 +625,7 @@ class Grid {
 
     flat(x, y) {
         const gc = this.gridCoords(x, y);
-        return gc.y * this.th + gc.x;
+        return gc.x * this.th + gc.y;
     }
 
     unflat(id) {
@@ -747,10 +747,19 @@ function spawnRandomFile() {
     game.files.add(f);
 }
 
+function randomizeFolders() {
+    for (const f of game.folders) {
+        game.grid.remove(f.x, f.y);
+        const p = game.grid.addRandom();
+        f.setPos(p.x, p.y);
+    }
+}
+
 function startGame() {
     if (game.state !== GameState.STARTING) return;
 
     // TODO add sounds, vfx, etc.
+    randomizeFolders();
     game.state = GameState.RUNNING;
 }
 
