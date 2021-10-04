@@ -758,6 +758,8 @@ function tick(t) {
     }
 
     if (game.state !== GameState.RUNNING) return;
+    if (game.ram >= 100 && Math.random() > .1) return;
+    if (game.cpu >= 100 && Math.random() > .1) return;
 
     if (game.prevFrame === null) {
         game.prevFrame = t;
@@ -774,7 +776,7 @@ function notPausedTick() {
     game.cpu = 1 + Math.random() * 3.5
         + game.penguinsAlive;
     game.ram = 1 + Math.random() * 4
-        + .5 * game.files.size;
+        + .7 * game.files.size;
     game.indicators.update(game.cpu, game.ram);
 }
 
