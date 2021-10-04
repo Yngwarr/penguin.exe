@@ -524,7 +524,7 @@ class Grid {
     constructor(container, tile, offset) {
         const rect = container.getBoundingClientRect();
         this.w = rect.width;
-        this.h = rect.height;
+        this.h = rect.height - 32;
         this.tile = tile;
         this.offset = offset;
         this.pts = new Set();
