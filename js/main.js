@@ -26,7 +26,7 @@ const TILE_SIZE = 72;
 const TILE_OFFSET = 10;
 const START_FOLDERS = 10;
 const START_PENGUINS = 3;
-const MAX_PENGUINS = 5;
+const MAX_PENGUINS = 10;
 const SPAWN_RATE = 1000; //ms
 const MIN_SEARCH_DURATION = 2;
 const MAX_SEARCH_DURATION = 15;
@@ -483,6 +483,10 @@ class File {
         return el;
     }
 
+    remove() {
+        this.el.remove();
+    }
+
     extentionClass() {
         const ext = this.name.substr(this.name.indexOf('.') + 1);
         return EXTENSIONS.includes(ext) ? ext : null;
@@ -812,6 +816,7 @@ function forAllSelectable(fun) {
 
 function unselect(file) {
     file.el.classList.remove('selected');
+    game.selected.delete(file);
 }
 
 function unselectAll() {
@@ -957,7 +962,12 @@ function init() {
     
     body.addEventListener('mouseup', e => {
         if (game.selectionGrabbed && isOver(game.bin.el, game.mousePos.x, game.mousePos.y)) {
-            // TODO delet
+            for (const f of game.selected) {
+                if (!game.files.has(f)) continue;
+                f.remove();
+                game.files.delete(f);
+            }
+            unselectAll();
         }
         game.selectionGrabbed = false;
     })
