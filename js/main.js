@@ -600,7 +600,7 @@ const game = {
     penguinsAlive: 0,
     animations: [],
     folders: [],
-    files: [],
+    files: null,
 
     mousePos: { x: 0, y: 0 },
     grid: null,
@@ -658,7 +658,7 @@ function unselect() {
 function spawnRandomFile() {
     const p = game.grid.addRandom();
     const f = new File(p.x, p.y, popName(fileNames, 'File'), desktop);
-    game.files.push(f);
+    game.files.add(f);
 }
 
 function tick(t) {
@@ -728,6 +728,7 @@ function init() {
 
     desktop.addEventListener('click', e => unselect());
 
+    game.files = new Set();
     game.grid = new Grid(desktop, TILE_SIZE, TILE_OFFSET);
 
     shuffle(folderNames);
