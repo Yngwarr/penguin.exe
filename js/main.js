@@ -386,6 +386,59 @@ class Penguin {
     }
 }
 
+class File {
+    constructor(x, y, name, container) {
+        this.x = x;
+        this.y = y;
+        this.name = name;
+        this.el = this.initElement(container);
+        this.el.addEventListener('click', e => {
+            e.stopPropagation();
+            select(this, !e.ctrlKey);
+        });
+        this.el.addEventListener('mousedown', e => {
+            if (this.el.classList.contains('selected')) {
+                grabSelection();
+            }
+        });
+
+        this.updateView();
+    }
+
+    initElement(container) {
+        const el = document.createElement('div');
+        el.classList.add('file');
+        const ext = this.extentionClass();
+        if (ext !== null) {
+            el.classList.add(ext);
+        }
+
+        const icon = document.createElement('div');
+        icon.classList.add('icon');
+        const span = document.createElement('span');
+        span.innerText = this.name;
+        el.appendChild(icon)
+        el.appendChild(span);
+        container.appendChild(el);
+
+        return el;
+    }
+
+    remove() {
+        this.el.remove();
+    }
+
+    extentionClass() {
+        const ext = this.name.substr(this.name.indexOf('.') + 1);
+        return EXTENSIONS.includes(ext) ? ext : null;
+    }
+
+    updateView() {
+        this.el.style.left = `${this.x}px`;
+        this.el.style.top = `${this.y}px`;
+    }
+}
+
 class Folder {
     constructor(x, y, name, container) {
         this.x = x;
@@ -396,6 +449,11 @@ class Folder {
         this.el.addEventListener('click', e => {
             e.stopPropagation();
             select(this, !e.ctrlKey);
+        });
+        this.el.addEventListener('mousedown', e => {
+            if (this.el.classList.contains('selected')) {
+                grabSelection();
+            }
         });
 
         this.updateView();
@@ -445,59 +503,6 @@ class Folder {
     }
 }
 
-class File {
-    constructor(x, y, name, container) {
-        this.x = x;
-        this.y = y;
-        this.name = name;
-        this.el = this.initElement(container);
-        this.el.addEventListener('click', e => {
-            e.stopPropagation();
-            select(this, !e.ctrlKey);
-        });
-        this.el.addEventListener('mousedown', e => {
-            if (this.el.classList.contains('selected')) {
-                game.selectionGrabbed = true;
-            }
-        });
-
-        this.updateView();
-    }
-
-    initElement(container) {
-        const el = document.createElement('div');
-        el.classList.add('file');
-        const ext = this.extentionClass();
-        if (ext !== null) {
-            el.classList.add(ext);
-        }
-
-        const icon = document.createElement('div');
-        icon.classList.add('icon');
-        const span = document.createElement('span');
-        span.innerText = this.name;
-        el.appendChild(icon)
-        el.appendChild(span);
-        container.appendChild(el);
-
-        return el;
-    }
-
-    remove() {
-        this.el.remove();
-    }
-
-    extentionClass() {
-        const ext = this.name.substr(this.name.indexOf('.') + 1);
-        return EXTENSIONS.includes(ext) ? ext : null;
-    }
-
-    updateView() {
-        this.el.style.left = `${this.x}px`;
-        this.el.style.top = `${this.y}px`;
-    }
-}
-
 class Bin {
     constructor(x, y, container) {
         this.x = x;
@@ -507,6 +512,11 @@ class Bin {
         this.el.addEventListener('click', e => {
             e.stopPropagation();
             select(this, !e.ctrlKey);
+        });
+        this.el.addEventListener('mousedown', e => {
+            if (this.el.classList.contains('selected')) {
+                grabSelection();
+            }
         });
 
         this.updateView();
@@ -542,6 +552,11 @@ class GameStarter {
             e.stopPropagation();
             select(this, !e.ctrlKey);
         });
+        this.el.addEventListener('mousedown', e => {
+            if (this.el.classList.contains('selected')) {
+                grabSelection();
+            }
+        });
         this.el.addEventListener('dblclick', e => {
             startGame();
         });
@@ -555,7 +570,7 @@ class GameStarter {
         const icon = document.createElement('div');
         icon.classList.add('icon');
         const span = document.createElement('span');
-        span.innerText = 'penguins.exe';
+        span.innerText = 'penguin.exe';
         el.appendChild(icon)
         el.appendChild(span);
         container.appendChild(el);
@@ -755,6 +770,17 @@ const game = {
     selectionCtrl: null,
     selected: null
 };
+
+function grabSelection() {
+    console.log('eee');
+    game.desktop.classList.add('moving');
+    game.selectionGrabbed = true;
+}
+
+function ungrabSelection() {
+    game.desktop.classList.remove('moving');
+    game.selectionGrabbed = false;
+}
 
 /**** HELPERS ****/
 
@@ -969,7 +995,7 @@ function init() {
             }
             unselectAll();
         }
-        game.selectionGrabbed = false;
+        ungrabSelection();
     })
 
     body.addEventListener('click', e => {

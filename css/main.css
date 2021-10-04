@@ -44,7 +44,12 @@ b {
     height: 100vh;
     background: url('../img/bliss.png') no-repeat;
     background-size: 100% 100%;
-    /*image-rendering: pixelated;*/
+    /*cursor: url('../img/mouse1.png'), pointer;*/
+}
+
+#desktop.moving {
+    /*cursor: url('../img/mouse2.png'), copy;*/
+    cursor: copy;
 }
 
 #selection {
@@ -172,6 +177,10 @@ b {
 
 .file.selected > .icon {
     filter: brightness(.5) sepia(100%) hue-rotate(180deg) saturate(8);
+}
+
+.moving .file.selected > .icon {
+    filter: brightness(.3) sepia(100%) hue-rotate(180deg) saturate(8);
 }
 
 .file.txt > .icon, .file.cpp > .icon { background-position: 0 -48px; }
