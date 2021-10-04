@@ -373,7 +373,7 @@ class Penguin {
             return;
         }
 
-        if (this.state === PenguinState.GETTING_UP && game.bin.isOver(this.x, this.y)) {
+        if (this.state === PenguinState.GETTING_UP && isOver(game.bin.el, this.x, this.y)) {
             this.setState(PenguinState.DEAD);
             ++game.score;
         }
@@ -521,12 +521,6 @@ class Bin {
         this.el.style.left = `${this.x}px`;
         this.el.style.top = `${this.y}px`;
     }
-
-    isOver(x, y) {
-        const rect = this.el.getBoundingClientRect();
-        return x > rect.left && x < rect.right
-            && y > rect.top && y < rect.bottom;
-    }
 }
 
 class GameStarter {
@@ -668,6 +662,53 @@ class IndicatorCtrl {
     }
 }
 
+class SelectionCtrl {
+    constructor() {
+        this.x0 = 0;
+        this.y0 = 0;
+        this.x1 = 0;
+        this.y1 = 0;
+        this.visible = false;
+        this.el = document.getElementById('selection');
+    }
+
+    show() {
+        this.el.classList.remove('hidden');
+        this.visible = true;
+    }
+
+    hide() {
+        this.el.classList.add('hidden');
+        this.visible = false;
+    }
+
+    setOri(x, y) {
+        this.x0 = x;
+        this.y0 = y;
+        this.updateView();
+    }
+
+    setDest(x, y) {
+        this.x1 = x;
+        this.y1 = y;
+        this.updateView();
+    }
+
+    updateView() {
+        const rect = game.desktop.getBoundingClientRect();
+        this.el.style.top = `${Math.min(this.y0, this.y1)}px`;
+        this.el.style.left = `${Math.min(this.x0, this.x1)}px`;
+        this.el.style.bottom = `${Math.min(rect.bottom - this.y0, rect.bottom - this.y1)}px`;
+        this.el.style.right = `${Math.min(rect.right - this.x0, rect.right - this.x1)}px`;
+    }
+
+    tick() {
+        if (!this.visible) return;
+
+        this.setDest(game.mousePos.x, game.mousePos.y);
+    }
+}
+
 /**** GLOBALS ****/
 
 const game = {
@@ -687,10 +728,12 @@ const game = {
 
     mousePos: { x: 0, y: 0 },
     body: null,
+    desktop: null,
     indicators: null,
     grid: null,
     bin: null,
-    starter: null
+    starter: null,
+    selection: null
 };
 
 /**** HELPERS ****/
@@ -728,6 +771,12 @@ function sample(arr) {
 function popName(arr, defaultValue, addExtension = true) {
     return arr.pop() ?? `${defaultValue} (${(Math.random() * 1000 + 1)|0})`
         + (addExtension ? `.${sample(EXTENSIONS)}` : '');
+}
+
+function isOver(el, x, y) {
+    const rect = el.getBoundingClientRect();
+    return x > rect.left && x < rect.right
+        && y > rect.top && y < rect.bottom;
 }
 
 /**** GAMEPLAY ****/
@@ -772,12 +821,7 @@ function gameOver() {
 function tick(t) {
     requestAnimationFrame(tick);
 
-    if (game.state !== GameState.PAUSED) {
-        notPausedTick();
-    }
-
-    if (game.state !== GameState.RUNNING) return;
-
+    // skip frames on high loads
     if (game.ram >= 100 && Math.random() > .1) {
         ++game.frameSkips;
         return;
@@ -786,6 +830,12 @@ function tick(t) {
         ++game.frameSkips;
         return;
     }
+
+    if (game.state !== GameState.PAUSED) {
+        notPausedTick();
+    }
+
+    if (game.state !== GameState.RUNNING) return;
 
     if (game.frameSkips >= FRAME_SKIPS_TO_BSOD) {
         gameOver();
@@ -804,6 +854,8 @@ function tick(t) {
 }
 
 function notPausedTick() {
+    game.selection.tick();
+
     game.cpu = 1 + Math.random() * 3.5
         + game.penguinsAlive;
     game.ram = 1 + Math.random() * 4
@@ -864,17 +916,30 @@ function init() {
     const body = document.querySelector('body');
     const desktop = document.getElementById('desktop');
     game.body = body;
+    game.desktop = desktop;
 
     body.addEventListener('mousemove', e => {
         game.mousePos.x = e.clientX;
         game.mousePos.y = e.clientY;
     });
 
-    desktop.addEventListener('click', e => unselect());
+    body.addEventListener('mouseup', e => {
+        game.selection.hide();
+    });
+
+    desktop.addEventListener('click', e => {
+        unselect();
+    });
+
+    desktop.addEventListener('mousedown', e => {
+        game.selection.setOri(e.clientX, e.clientY);
+        game.selection.show();
+    });
 
     game.files = new Set();
     game.grid = new Grid(desktop, TILE_SIZE, TILE_OFFSET);
     game.indicators = new IndicatorCtrl();
+    game.selection = new SelectionCtrl();
 
     shuffle(folderNames);
     shuffle(fileNames);
