@@ -51,6 +51,12 @@ const ANIMATION_FRAMES = {
     press: [[6,5], [1,6], [2,6], [3,6], [4,6],[5,6],[5,5]]
 };
 
+const GameState = {
+    STARTING: 0,
+    RUNNING: 1,
+    PAUSED: 2
+};
+
 const PenguinState = {
     IDLE: 0,
     RUNNING: 1,
@@ -520,6 +526,43 @@ class Bin {
     }
 }
 
+class GameStarter {
+    constructor(x, y, container) {
+        this.x = x;
+        this.y = y;
+
+        this.el = this.initElement(container);
+        this.el.addEventListener('click', e => {
+            e.stopPropagation();
+            select(this.el);
+        });
+        this.el.addEventListener('dblclick', e => {
+            startGame();
+        });
+
+        this.updateView();
+    }
+
+    initElement(container) {
+        const el = document.createElement('div');
+        el.classList.add('file', 'starter');
+        const icon = document.createElement('div');
+        icon.classList.add('icon');
+        const span = document.createElement('span');
+        span.innerText = 'penguins.exe';
+        el.appendChild(icon)
+        el.appendChild(span);
+        container.appendChild(el);
+
+        return el;
+    }
+
+    updateView() {
+        this.el.style.left = `${this.x}px`;
+        this.el.style.top = `${this.y}px`;
+    }
+}
+
 class Grid {
     constructor(container, tile, offset) {
         const rect = container.getBoundingClientRect();
@@ -594,7 +637,7 @@ class Grid {
 const game = {
     prevFrame: null,
     toNextSpawn: SPAWN_RATE, 
-    paused: false,
+    state: GameState.STARTING,
 
     penguins: [],
     penguinsAlive: 0,
@@ -603,9 +646,10 @@ const game = {
     files: null,
 
     mousePos: { x: 0, y: 0 },
+    body: null,
     grid: null,
     bin: null,
-    body: null
+    starter: null
 };
 
 /**** HELPERS ****/
@@ -640,8 +684,9 @@ function sample(arr) {
     return arr[(Math.random() * arr.length)|0]
 }
 
-function popName(arr, defaultValue) {
-    return arr.pop() ?? `${defaultValue} (${(Math.random() * 1000 + 1)|0}).${sample(EXTENSIONS)}`;
+function popName(arr, defaultValue, addExtension = true) {
+    return arr.pop() ?? `${defaultValue} (${(Math.random() * 1000 + 1)|0})`
+        + (addExtension ? `.${sample(EXTENSIONS)}` : '');
 }
 
 /**** GAMEPLAY ****/
@@ -661,10 +706,17 @@ function spawnRandomFile() {
     game.files.add(f);
 }
 
+function startGame() {
+    if (game.state !== GameState.STARTING) return;
+
+    // TODO add sounds, vfx, etc.
+    game.state = GameState.RUNNING;
+}
+
 function tick(t) {
     requestAnimationFrame(tick);
 
-    if (game.paused) return;
+    if (game.state !== GameState.RUNNING) return;
 
     if (game.prevFrame === null) {
         game.prevFrame = t;
@@ -693,6 +745,12 @@ function spawnBin(container) {
     const p = game.grid.addRandom();
     const bin = new Bin(p.x, p.y, container);
     return bin;
+}
+
+function spawnStarter(container) {
+    const p = game.grid.addNext();
+    const starter = new GameStarter(p.x, p.y, container);
+    return starter;
 }
 
 function spawnPenguin(container) {
@@ -737,14 +795,16 @@ function init() {
     game.bin = spawnBin(desktop);
 
     for (let i = 0; i < START_FOLDERS; ++i) {
-        const p = game.grid.addRandom();
-        const f = new Folder(p.x, p.y, popName(folderNames, 'Folder'), desktop);
+        const p = game.grid.addNext();
+        const f = new Folder(p.x, p.y, popName(folderNames, 'Folder', false), desktop);
         game.folders.push(f);
     }
 
-    for (let i = 0; i < START_PENGUINS; ++i) {
-        spawnPenguin(body);
-    }
+    game.starter = spawnStarter(desktop);
+
+    //for (let i = 0; i < START_PENGUINS; ++i) {
+        //spawnPenguin(body);
+    //}
 
     requestAnimationFrame(tick);
 }
