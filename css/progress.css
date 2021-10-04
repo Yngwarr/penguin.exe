@@ -27,3 +27,7 @@
     background-color: #1a0094;
     transition: width .6s ease;
 }
+
+.progress-bar.critical {
+    background-color: #94001a;
+}

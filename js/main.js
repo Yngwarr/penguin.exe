@@ -17,6 +17,7 @@ const COS_11 = Math.cos(11 * Math.PI/8);
 const COS_13 = Math.cos(13 * Math.PI/8);
 const COS_15 = Math.cos(15 * Math.PI/8);
 
+const CRITICAL_LOAD = 80;
 const PENGUIN_SPEED = .125;
 const PENGUIN_SIZE = 64;
 const ANIMATION_DURATION = 100;
@@ -632,12 +633,46 @@ class Grid {
     }
 }
 
+class IndicatorCtrl {
+    constructor() {
+        this.cpu = 0;
+        this.ram = 0;
+        this.cpuEl = document.getElementById('cpu-progress');
+        this.ramEl = document.getElementById('ram-progress');
+    }
+
+    update(cpu, ram) {
+        if (this.cpu != cpu) {
+            this.cpuEl.style.width = `${cpu}%`;
+            if (cpu >= CRITICAL_LOAD && this.cpu < CRITICAL_LOAD) {
+                this.cpuEl.classList.add('critical');
+            }
+            if (cpu < CRITICAL_LOAD && this.cpu >= CRITICAL_LOAD) {
+                this.cpuEl.classList.remove('critical');
+            }
+            this.cpu = cpu;
+        }
+        if (this.ram != ram) {
+            this.ramEl.style.width = `${ram}%`;
+            if (ram >= CRITICAL_LOAD && this.ram < CRITICAL_LOAD) {
+                this.ramEl.classList.add('critical');
+            }
+            if (ram < CRITICAL_LOAD && this.ram >= CRITICAL_LOAD) {
+                this.ramEl.classList.remove('critical');
+            }
+            this.ram = ram;
+        }
+    }
+}
+
 /**** GLOBALS ****/
 
 const game = {
     prevFrame: null,
     toNextSpawn: SPAWN_RATE, 
     state: GameState.STARTING,
+    cpu: 0,
+    ram: 0,
 
     penguins: [],
     penguinsAlive: 0,
@@ -647,6 +682,7 @@ const game = {
 
     mousePos: { x: 0, y: 0 },
     body: null,
+    indicators: null,
     grid: null,
     bin: null,
     starter: null
@@ -739,6 +775,10 @@ function tick(t) {
     for (let a of game.animations) {
         a.tick(dt);
     }
+
+    game.cpu = game.penguinsAlive;
+    game.ram = game.files.size;
+    game.indicators.update(game.cpu, game.ram);
 }
 
 function spawnBin(container) {
@@ -788,6 +828,7 @@ function init() {
 
     game.files = new Set();
     game.grid = new Grid(desktop, TILE_SIZE, TILE_OFFSET);
+    game.indicators = new IndicatorCtrl();
 
     shuffle(folderNames);
     shuffle(fileNames);
