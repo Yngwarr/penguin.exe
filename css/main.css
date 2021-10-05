@@ -263,8 +263,8 @@ b {
     z-index: 20;
     position: fixed;
 
-    top: 100px;
-    left: 300px;
+    top: 50px;
+    left: 150px;
 }
 
 .credits pre {
