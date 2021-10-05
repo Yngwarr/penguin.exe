@@ -264,7 +264,7 @@ class WanderBehaviour {
             break;
             case WanderStage.RUNNING:
                 setTimeout(() => {
-                    if (penguin.behaviour.stopped) return;
+                    if (this.stopped) return;
                     this.next(penguin);
                 }, 3000 + Math.random() * 2000);
                 penguin.setState(PenguinState.DANCING);
@@ -871,13 +871,15 @@ function initSounds() {
     });
     sounds['happy'] = new Howl({
         src: ['sfx/happy.wav'],
-        volume: .8
+        volume: .7
     });
     sounds['ayay'] = new Howl({
-        src: ['sfx/ayay.wav']
+        src: ['sfx/ayay.wav'],
+        volume: .7
     });
     sounds['stopit'] = new Howl({
-        src: ['sfx/stopit.wav']
+        src: ['sfx/stopit.wav'],
+        volume: .7
     });
     sounds['error'] = new Howl({
         src: ['sfx/error.wav']
