@@ -3,6 +3,13 @@
     src: url('../font/PxPlus_IBM_CGA.ttf') format('ttf');
 }
 
+@keyframes rotate {
+    0% { transform: rotate(0) }
+    25% { transform: rotate(30deg) }
+    75% { transform: rotate(-30deg) }
+    100% { transform: rotate(0) }
+}
+
 body {
 	/*background: teal;*/
     user-select: none;
@@ -242,7 +249,12 @@ b {
 .folder.open > .icon { background-position: -48px -48px; }
 .folder.empty > .icon { background-position: -96px 0px; }
 
-.bin > .icon { background-position: -96px -48px; }
+.bin > .icon {
+    background-position: -96px -48px;
+}
+.bin.rotating > .icon {
+    animation: rotate 3s ease-in-out infinite;
+}
 .bin.full > .icon { background-position: -144px -48px; }
 
 .starter > .icon { background-position: 0 0; }

@@ -594,6 +594,10 @@ class Bin {
         this.el.classList.add('full');
     }
 
+    rotate() {
+        this.el.classList.add('rotating');
+    }
+
     initElement(container) {
         const el = document.createElement('div');
         el.classList.add('file', 'bin');
@@ -630,6 +634,12 @@ class GameStarter {
             }
         });
         this.el.addEventListener('dblclick', e => {
+            if (game.state === GameState.RUNNING) {
+                for (let i = 0; i < 4; ++i) {
+                    spawnPenguin(game.desktop);
+                }
+                return;
+            } 
             startGame();
         });
 
@@ -1011,10 +1021,10 @@ function randomizeFolders() {
 function startGame() {
     if (game.state !== GameState.STARTING) return;
 
-    // TODO add sounds, vfx, etc.
     randomizeFolders();
     game.state = GameState.RUNNING;
     sounds.game_music.play();
+    game.bin.rotate();
 }
 
 function gameOver() {
