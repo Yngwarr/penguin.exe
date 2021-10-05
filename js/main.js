@@ -264,7 +264,7 @@ class WanderBehaviour {
             break;
             case WanderStage.RUNNING:
                 setTimeout(() => {
-                    if (stopped) return;
+                    if (penguin.behaviour.stopped) return;
                     this.next(penguin);
                 }, 3000 + Math.random() * 2000);
                 penguin.setState(PenguinState.DANCING);
