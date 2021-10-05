@@ -1127,10 +1127,6 @@ function spawnPenguin(container) {
     sounds.spawn.play();
 }
 
-function onload() {
-    initSounds();
-}
-
 function init() {
     document.getElementById('clickme').classList.add('hidden');
     boot();
@@ -1213,3 +1209,5 @@ function openAbout() {
 function closeAbout() {
     document.querySelector('.credits').classList.add('hidden');
 }
+
+initSounds();
