@@ -25,15 +25,14 @@ const ANIMATION_DURATION = 100;
 const TILE_SIZE = 72;
 const TILE_OFFSET = 10;
 const START_FOLDERS = 20;
-const START_PENGUINS = 3;
+const START_PENGUINS = 10;
 const MAX_PENGUINS = 50;
-const SPAWN_RATE = 1000; //ms
-const SPAWN_DELTA = 3000; //ms
+const SPAWN_RATE = 500; //ms
+const SPAWN_DELTA = 1500; //ms
 const MIN_SEARCH_DURATION = 2;
 const MAX_SEARCH_DURATION = 15;
-
-const PENGUIN_CPU_LOAD = 1.5;
-const FILE_RAM_LOAD = .7;
+const PENGUIN_CPU_LOAD = 2;
+const FILE_RAM_LOAD = 1;
 
 const ANIMATION_FRAMES = {
     idle: [[0,0], [1,0]],
@@ -426,7 +425,7 @@ class Penguin {
 
         if (this.state === PenguinState.GETTING_UP && isOver(game.bin.el, this.x, this.y)) {
             this.setState(PenguinState.DEAD);
-            ++game.score;
+            game.score += 2;
             sounds.toss.play();
             game.bin.fill();
         }
@@ -1114,9 +1113,12 @@ function spawnPenguin(container) {
     sounds.spawn.play();
 }
 
+function onload() {
+    initSounds();
+}
+
 function init() {
     document.getElementById('clickme').classList.add('hidden');
-    initSounds();
     boot();
 
     const body = document.querySelector('body');
@@ -1139,6 +1141,7 @@ function init() {
                 if (!game.files.has(f)) continue;
                 f.remove();
                 game.files.delete(f);
+                ++game.score;
             }
             unselectAll();
             sounds.toss.play();
@@ -1189,6 +1192,10 @@ function init() {
     requestAnimationFrame(tick);
 }
 
-function closeSeal() {
-    document.querySelector('.browser').style.display = 'none';
+function openAbout() {
+    document.querySelector('.credits').classList.remove('hidden');
+}
+
+function closeAbout() {
+    document.querySelector('.credits').classList.add('hidden');
 }

@@ -70,7 +70,7 @@ b {
 
 #bsod {
     z-index: 15;
-    background: blue;
+    background: darkblue;
     color: white;
 
     display: flex;
@@ -91,7 +91,7 @@ b {
 #bsod > h1 {
     display: inline-block;
     background: white;
-    color: blue;
+    color: darkblue;
     padding: 4px 24px;
     align: center;
 }
@@ -247,9 +247,16 @@ b {
 
 .starter > .icon { background-position: 0 0; }
 
-.browser {
+.credits {
+    z-index: 20;
     position: fixed;
 
     top: 100px;
     left: 300px;
+}
+
+.credits pre {
+    font-family: IBM, monospace;
+    font-size: 12px;
+    user-select: text;
 }

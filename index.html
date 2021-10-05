@@ -11,22 +11,60 @@
 		<script src='js/3rd/howler.core.min.js'></script>
 		<script src='js/main.js'></script>
 	</head>
-	<body>
+	<body onload='onload()'>
         <div id='desktop'>
-            <!--<div class='browser window'>-->
-                <!--<div class='title-bar'>-->
-                    <!--<div class='title-bar-text'>Iceseal Browser</div>-->
-                    <!--<div class='title-bar-controls'>-->
-                        <!--<button aria-label='Close' onclick='closeSeal()'></button>-->
-                    <!--</div>-->
-                <!--</div>-->
-                <!--<div class='window-body'>-->
-                    <!--<p>There are no browser here.</p>-->
-                    <!--<button id='no-clickin' onclick='closeSeal()'>No clickin'</button>-->
-                <!--</div>-->
-            <!--</div>-->
+            <div class='credits window hidden'>
+                <div class='title-bar'>
+                    <div class='title-bar-text'>About</div>
+                    <div class='title-bar-controls'>
+                        <button aria-label='Close' onclick='closeAbout()'></button>
+                    </div>
+                </div>
+                <div class='window-body'>
+                    <pre>
+DoggOS 3.14 (for workgroups?)
+
+                        _.--"""--._
+                      .'       '-. `.
+                   __/__    (-.   `\ \
+                  /o `o \      \    \ \
+                 _\__.__/ ))    |    | ;
+            .--;"               |    |  \
+           (    `)              |    |   \
+          _|`---' .'      _,   _|    |    `\
+        '`_\  \     '_,.-';_.-`\|     \     \_
+        .'  '--'---;`  / /     |\     |_..--' \
+                   \'-'.'     .--'.__/    __.-;
+                    `"`      (___...---''`     \
+                             _/_                \
+                            /jgs\
+                            \___/
+
+Credits:
+* Yngvarr - programming, sounds of penguins.
+* Syudzius - all the art in the game.
+
+Used assets:
+* Music - 'Boiler' and 'Moody Dungeon' by Joshua McLean (via https://retroindiejosh.itch.io/music-pack-13).
+* SFX_WriteCrumpleThrow by Perel (via https://freesound.org/people/Perel/sounds/173440/, cut).
+* Woof.mp3 by Princess6537 (via https://freesound.org/people/Princess6537/sounds/144885/, modified).
+* mouse click.wav by THE_bizniss (via https://freesound.org/people/THE_bizniss/sounds/39562/, modified).
+* Retro Audio Logo by Breviceps (via https://freesound.org/people/Breviceps/sounds/564237/).
+* computerstartup.wav by guitarguy1985 (via https://freesound.org/people/guitarguy1985/sounds/52050/).
+* 98.css theme for imitating Windows 98 interface (https://jdan.github.io/98.css/).
+
+Special thanks to:
+* windows93.net for implementation tips.
+* alexbsoft for progress bar style.
+* jgs for ASCII-art (via windows93.net).
+* Pixel Prophecy community.
+
+Thanks for reading!
+                    </pre>
+                </div>
+            </div>
             <footer id='taskbar' class='window'>
-                <button id='start'>
+                <button id='start' onclick='openAbout()'>
                     <div id='start-icon'></div>
                     <b>Start</b>
                 </button>
