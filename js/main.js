@@ -198,6 +198,7 @@ class TossBehaviour {
         this.target = target;
         this.stage = TossStage.SETUP;
         this.searchDuration = 1;
+        this.stopped = false;
     }
 
     next(penguin) {
@@ -233,6 +234,10 @@ class TossBehaviour {
         }
     }
 
+    stop() {
+        this.stopped = true;
+    }
+
     setSearchDuration() {
         this.searchDuration = MIN_SEARCH_DURATION
             + ((Math.random() * (MAX_SEARCH_DURATION - MIN_SEARCH_DURATION))|0);
@@ -247,6 +252,7 @@ class TossBehaviour {
 class WanderBehaviour {
     constructor() {
         this.stage = WanderStage.SETUP;
+        this.stopped = false;
     }
 
     next(penguin) {
@@ -257,7 +263,10 @@ class WanderBehaviour {
                 this.stage = WanderStage.RUNNING;
             break;
             case WanderStage.RUNNING:
-                setTimeout(() => this.next(penguin), 3000 + Math.random() * 2000);
+                setTimeout(() => {
+                    if (stopped) return;
+                    this.next(penguin);
+                }, 3000 + Math.random() * 2000);
                 penguin.setState(PenguinState.DANCING);
                 this.stage = WanderStage.DANCING;
             break;
@@ -267,6 +276,10 @@ class WanderBehaviour {
                 this.stage = WanderStage.RUNNING;
             break;
         }
+    }
+
+    stop() {
+        this.stopped = true;
     }
 
     randomPt() {
@@ -373,6 +386,7 @@ class Penguin {
             break;
             case PenguinState.HANGING:
                 game.animations[this.animId].setAnim('hanging');
+                this.behaviour.stop();
             break;
             case PenguinState.GETTING_UP:
                 game.animations[this.animId].setAnim('getting_up', a => {
