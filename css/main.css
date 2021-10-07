@@ -264,11 +264,13 @@ b {
     position: fixed;
 
     top: 50px;
-    left: 150px;
+    left: 100px;
 }
 
 .credits pre {
     font-family: IBM, monospace;
     font-size: 12px;
     user-select: text;
+    overflow-y: scroll;
+    height: 60vh;
 }
